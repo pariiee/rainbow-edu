@@ -1,45 +1,52 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Tambah Siswa</title>
-</head>
-<body>
+<?= $this->extend('layouts/main') ?>
+<?= $this->section('content') ?>
 
-<h2>Form Data Siswa</h2>
+<h2>Tambah Siswa</h2>
 
-<form action="/siswa/store" method="post">
+<?php if (session()->getFlashdata('errors')) : ?>
+    <ul style="color:red">
+        <?php foreach (session()->getFlashdata('errors') as $error) : ?>
+            <li><?= esc($error) ?></li>
+        <?php endforeach ?>
+    </ul>
+<?php endif ?>
 
-    <h3>Data Siswa</h3>
-    <input type="text" name="nama_lengkap" placeholder="Nama Lengkap" required><br>
-    <input type="text" name="nama_panggilan" placeholder="Nama Panggilan"><br>
-    <input type="date" name="tanggal_lahir"><br>
+<form action="/siswa" method="post">
+<?= csrf_field() ?>
 
-    <select name="gender">
-        <option value="Laki-laki">Laki-laki</option>
-        <option value="Perempuan">Perempuan</option>
-    </select><br>
+<h3>Data Siswa</h3>
+<input type="text" name="nama_lengkap" placeholder="Nama Lengkap" value="<?= old('nama_lengkap') ?>" required><br>
+<input type="text" name="nama_panggilan" placeholder="Nama Panggilan" value="<?= old('nama_panggilan') ?>"><br>
+<input type="date" name="tanggal_lahir" value="<?= old('tanggal_lahir') ?>"><br>
 
-    <input type="text" name="agama" placeholder="Agama"><br>
-    <input type="number" name="anak_ke" placeholder="Anak ke"><br>
-    <textarea name="alamat" placeholder="Alamat"></textarea><br>
-    <input type="text" name="kewarganegaraan" placeholder="Kewarganegaraan"><br>
+<select name="gender" required>
+    <option value="">-- Pilih Gender --</option>
+    <option value="Laki-laki" <?= old('gender')=='Laki-laki'?'selected':'' ?>>Laki-laki</option>
+    <option value="Perempuan" <?= old('gender')=='Perempuan'?'selected':'' ?>>Perempuan</option>
+</select><br>
 
-    <h3>Data Orang Tua</h3>
-    <input type="text" name="nama_ayah" placeholder="Nama Ayah"><br>
-    <input type="text" name="nama_ibu" placeholder="Nama Ibu"><br>
+<input type="text" name="agama" placeholder="Agama" value="<?= old('agama') ?>"><br>
+<input type="number" name="anak_ke" placeholder="Anak ke" value="<?= old('anak_ke') ?>"><br>
+<textarea name="alamat" placeholder="Alamat"><?= old('alamat') ?></textarea><br>
+<input type="text" name="kewarganegaraan" placeholder="Kewarganegaraan" value="<?= old('kewarganegaraan') ?>"><br>
 
-    <h3>Sumber Informasi</h3>
-    <input type="checkbox" name="sumber_informasi[]" value="Instagram"> Instagram
-    <input type="checkbox" name="sumber_informasi[]" value="Google"> Google
-    <input type="checkbox" name="sumber_informasi[]" value="Teman"> Teman<br>
+<h3>Data Orang Tua</h3>
+<input type="text" name="nama_ayah" placeholder="Nama Ayah" value="<?= old('nama_ayah') ?>"><br>
+<input type="text" name="nama_ibu" placeholder="Nama Ibu" value="<?= old('nama_ibu') ?>"><br>
 
-    <h3>Consent Konten</h3>
-    <input type="radio" name="consent_konten" value="Ya" required> Ya
-    <input type="radio" name="consent_konten" value="Tidak"> Tidak<br><br>
+<h3>Sumber Informasi</h3>
+<label><input type="checkbox" name="sumber_informasi[]" value="Instagram"> Instagram</label>
+<label><input type="checkbox" name="sumber_informasi[]" value="Google"> Google</label>
+<label><input type="checkbox" name="sumber_informasi[]" value="Teman"> Teman</label>
 
-    <button type="submit">Simpan</button>
+<h3>Consent Konten</h3>
+<label><input type="radio" name="consent_konten" value="Ya" <?= old('consent_konten')=='Ya'?'checked':'' ?> required> Ya</label>
+<label><input type="radio" name="consent_konten" value="Tidak" <?= old('consent_konten')=='Tidak'?'checked':'' ?>> Tidak</label>
+
+<br><br>
+<button type="submit">Simpan</button>
+<a href="/siswa">Kembali</a>
 
 </form>
 
-</body>
-</html>
+<?= $this->endSection() ?>

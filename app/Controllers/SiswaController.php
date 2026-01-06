@@ -4,124 +4,165 @@ namespace App\Controllers;
 
 use App\Models\SiswaModel;
 use App\Models\SiswaDetailModel;
-use App\Models\SiswaBerkasModel;
+use CodeIgniter\Database\Exceptions\DatabaseException;
 
 class SiswaController extends BaseController
 {
-    /**
-     * Form create siswa
-     */
+    public function index()
+    {
+        $model = new SiswaModel();
+        return view('siswa/index', [
+            'siswa' => $model->findAll()
+        ]);
+    }
+
     public function create()
     {
         return view('siswa/create');
     }
 
-    /**
-     * Simpan data siswa + detail
-     */
+    public function show($id)
+{
+    $model = new SiswaModel();
+
+    $siswa = $model->find($id);
+
+    if (!$siswa) {
+        throw new \CodeIgniter\Exceptions\PageNotFoundException('Data siswa tidak ditemukan');
+    }
+
+    return view('siswa/show', [
+        'siswa' => $siswa
+    ]);
+}
+
+
+    public function edit($id)
+    {
+        $siswaModel  = new SiswaModel();
+        $detailModel = new SiswaDetailModel();
+
+        $siswa  = $siswaModel->find($id);
+        $detail = $detailModel->where('id_siswa', $id)->first();
+
+        if (! $siswa) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
+        return view('siswa/edit', compact('siswa', 'detail'));
+    }
+
     public function store()
     {
-        // ===============================
-        // VALIDATION (WAJIB)
-        // ===============================
+        $db = \Config\Database::connect();
+        $db->transBegin();
+
+        $siswaModel  = new SiswaModel();
+        $detailModel = new SiswaDetailModel();
+
         $rules = [
             'nama_lengkap'   => 'required|min_length[3]',
             'gender'         => 'required|in_list[Laki-laki,Perempuan]',
+            'tanggal_lahir'  => 'required|valid_date',
             'consent_konten' => 'required|in_list[Ya,Tidak]'
         ];
 
         if (! $this->validate($rules)) {
-            return redirect()
-                ->back()
-                ->withInput()
-                ->with('errors', $this->validator->getErrors());
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        // ===============================
-        // INIT MODEL & DB
-        // ===============================
-        $siswaModel  = new SiswaModel();
-        $detailModel = new SiswaDetailModel();
-        $db = \Config\Database::connect();
+        try {
+            $siswaModel->insert([
+                'nama_lengkap'    => $this->request->getPost('nama_lengkap'),
+                'nama_panggilan'  => $this->request->getPost('nama_panggilan'),
+                'tanggal_lahir'   => $this->request->getPost('tanggal_lahir'),
+                'gender'          => $this->request->getPost('gender'),
+                'agama'           => $this->request->getPost('agama'),
+                'anak_ke'         => $this->request->getPost('anak_ke'),
+                'alamat'          => $this->request->getPost('alamat'),
+                'kewarganegaraan' => $this->request->getPost('kewarganegaraan')
+            ]);
 
-        // ===============================
-        // TRANSACTION START
-        // ===============================
-        $db->transStart();
+            $idSiswa = $siswaModel->getInsertID();
 
-        // 1. Simpan siswa
-        $idSiswa = $siswaModel->insert([
-            'nama_lengkap'     => $this->request->getPost('nama_lengkap'),
-            'nama_panggilan'   => $this->request->getPost('nama_panggilan'),
-            'tanggal_lahir'    => $this->request->getPost('tanggal_lahir'),
-            'gender'           => $this->request->getPost('gender'),
-            'agama'            => $this->request->getPost('agama'),
-            'anak_ke'          => $this->request->getPost('anak_ke'),
-            'alamat'           => $this->request->getPost('alamat'),
-            'kewarganegaraan'  => $this->request->getPost('kewarganegaraan')
-        ]);
+            $detailModel->insert([
+                'id_siswa'               => $idSiswa,
+                'nama_ayah'              => $this->request->getPost('nama_ayah'),
+                'nama_ibu'               => $this->request->getPost('nama_ibu'),
+                'alamat_ortu_wali'       => $this->request->getPost('alamat_ortu_wali'),
+                'pekerjaan_ayah'         => $this->request->getPost('pekerjaan_ayah'),
+                'nohp_ayah'              => $this->request->getPost('nohp_ayah'),
+                'pekerjaan_ibu'          => $this->request->getPost('pekerjaan_ibu'),
+                'nohp_ibu'               => $this->request->getPost('nohp_ibu'),
+                'bahasa'                 => $this->request->getPost('bahasa'),
+                'jumlah_saudara_kandung' => $this->request->getPost('jumlah_saudara_kandung'),
+                'sumber_informasi'       => implode(',', (array)$this->request->getPost('sumber_informasi')),
+                'consent_konten'         => $this->request->getPost('consent_konten')
+            ]);
 
-        // Jika insert siswa gagal
-        if (! $idSiswa) {
+            $db->transCommit();
+
+            return redirect()->to('/siswa')->with('success', 'Data siswa berhasil disimpan');
+
+        } catch (DatabaseException $e) {
             $db->transRollback();
-            return redirect()->back()->with('error', 'Gagal menyimpan data siswa');
+            return redirect()->back()->withInput()->with('error', 'Gagal menyimpan data');
         }
-
-        // 2. Simpan detail siswa
-        $detailModel->insert([
-            'id_siswa'               => $idSiswa,
-            'nama_ayah'              => $this->request->getPost('nama_ayah'),
-            'nama_ibu'               => $this->request->getPost('nama_ibu'),
-            'alamat_ortu_wali'       => $this->request->getPost('alamat_ortu_wali'),
-            'pekerjaan_ayah'         => $this->request->getPost('pekerjaan_ayah'),
-            'kantor_ayah'            => $this->request->getPost('kantor_ayah'),
-            'nohp_ayah'              => $this->request->getPost('nohp_ayah'),
-            'pekerjaan_ibu'          => $this->request->getPost('pekerjaan_ibu'),
-            'kantor_ibu'             => $this->request->getPost('kantor_ibu'),
-            'nohp_ibu'               => $this->request->getPost('nohp_ibu'),
-            'bahasa'                 => $this->request->getPost('bahasa'),
-            'jumlah_saudara_kandung' => $this->request->getPost('jumlah_saudara_kandung'),
-            'nama_saudara_kandung'   => $this->request->getPost('nama_saudara_kandung'),
-            'usia_saudara_kandung'   => $this->request->getPost('usia_saudara_kandung'),
-            'sumber_informasi'       => $this->request->getPost('sumber_informasi')
-                                        ? implode(',', $this->request->getPost('sumber_informasi'))
-                                        : null,
-            'consent_konten'         => $this->request->getPost('consent_konten')
-        ]);
-
-        // ===============================
-        // TRANSACTION END
-        // ===============================
-        $db->transComplete();
-
-        if ($db->transStatus() === false) {
-            return redirect()->back()->with('error', 'Gagal menyimpan data');
-        }
-
-        return redirect()->to('/siswa/create')->with('success', 'Data siswa berhasil disimpan');
     }
 
-    /**
-     * Upload berkas siswa
-     */
-    public function uploadBerkas($idSiswa)
+    public function update($id)
     {
-        $berkasModel = new SiswaBerkasModel();
-        $file = $this->request->getFile('berkas');
+        $db = \Config\Database::connect();
+        $db->transBegin();
 
-        if (! $file || ! $file->isValid()) {
-            return redirect()->back()->with('error', 'File tidak valid');
+        $siswaModel  = new SiswaModel();
+        $detailModel = new SiswaDetailModel();
+
+        try {
+            $siswaModel->update($id, [
+                'nama_lengkap'    => $this->request->getPost('nama_lengkap'),
+                'nama_panggilan'  => $this->request->getPost('nama_panggilan'),
+                'tanggal_lahir'   => $this->request->getPost('tanggal_lahir'),
+                'gender'          => $this->request->getPost('gender'),
+                'agama'           => $this->request->getPost('agama'),
+                'anak_ke'         => $this->request->getPost('anak_ke'),
+                'alamat'          => $this->request->getPost('alamat'),
+                'kewarganegaraan' => $this->request->getPost('kewarganegaraan')
+            ]);
+
+            $detailModel->where('id_siswa', $id)->set([
+                'nama_ayah'        => $this->request->getPost('nama_ayah'),
+                'nama_ibu'         => $this->request->getPost('nama_ibu'),
+                'alamat_ortu_wali' => $this->request->getPost('alamat_ortu_wali'),
+                'consent_konten'   => $this->request->getPost('consent_konten')
+            ])->update();
+
+            $db->transCommit();
+
+            return redirect()->to('/siswa')->with('success', 'Data berhasil diperbarui');
+
+        } catch (\Exception $e) {
+            $db->transRollback();
+            return redirect()->back()->withInput()->with('error', 'Gagal update data');
         }
+    }
 
-        $path = $file->store('uploads/siswa');
+    public function delete($id)
+    {
+        $db = \Config\Database::connect();
+        $db->transBegin();
 
-        $berkasModel->insert([
-            'id_siswa'     => $idSiswa,
-            'jenis_berkas' => $this->request->getPost('jenis_berkas'),
-            'file_path'    => $path,
-            'uploaded_at'  => date('Y-m-d H:i:s')
-        ]);
+        try {
+            (new SiswaDetailModel())->where('id_siswa', $id)->delete();
+            (new SiswaModel())->delete($id);
 
-        return redirect()->back()->with('success', 'Berkas berhasil diupload');
+            $db->transCommit();
+
+            return redirect()->to('/siswa')->with('success', 'Data siswa dihapus');
+
+        } catch (\Exception $e) {
+            $db->transRollback();
+            return redirect()->to('/siswa')->with('error', 'Gagal menghapus data');
+        }
     }
 }
