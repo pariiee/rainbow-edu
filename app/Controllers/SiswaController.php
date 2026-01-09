@@ -23,18 +23,23 @@ class SiswaController extends BaseController
 
     public function show($id)
 {
-    $model = new SiswaModel();
+    $siswaModel  = new SiswaModel();
+    $detailModel = new SiswaDetailModel();
 
-    $siswa = $model->find($id);
+    $siswa = $siswaModel->find($id);
 
-    if (!$siswa) {
+    if (! $siswa) {
         throw new \CodeIgniter\Exceptions\PageNotFoundException('Data siswa tidak ditemukan');
     }
 
+    $detail = $detailModel->where('id_siswa', $id)->first();
+
     return view('siswa/show', [
-        'siswa' => $siswa
+        'siswa'  => $siswa,
+        'detail' => $detail   // ⬅️ INI YANG KURANG
     ]);
 }
+
 
 
     public function edit($id)
