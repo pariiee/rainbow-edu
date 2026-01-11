@@ -61,12 +61,16 @@
                     </div>
 
                     <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                        <p class="text-sm text-gray-600 mb-1">Gender</p>
-                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold 
-                            <?= $siswa['gender'] === 'Laki-laki' ? 'bg-blue-100 text-blue-800' : 'bg-pink-100 text-pink-800' ?>">
-                            <?= esc($siswa['gender']) ?>
-                        </span>
-                    </div>
+    <p class="text-sm text-gray-600 mb-1">Gender</p>
+    <?php 
+        $gender = trim($siswa['gender']);
+        $isLakiLaki = ($gender === 'Laki-laki');
+    ?>
+    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold 
+        <?= $isLakiLaki ? 'bg-blue-100 text-blue-800' : 'bg-pink-100 text-pink-800' ?>">
+        <?= esc($gender) ?>
+    </span>
+</div>
 
                     <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
                         <p class="text-sm text-gray-600 mb-1">Agama</p>

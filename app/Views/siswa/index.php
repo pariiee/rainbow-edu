@@ -61,8 +61,8 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                        <?= $row['gender'] === 'L' ? 'bg-blue-100 text-blue-800' : 'bg-pink-100 text-pink-800' ?>">
-                                        <?= esc($row['gender']) === 'L' ? 'Laki-laki' : 'Perempuan' ?>
+                                        <?= $row['gender'] === 'Laki-laki' ? 'bg-blue-100 text-blue-800' : 'bg-pink-100 text-pink-800' ?>">
+                                        <?= esc($row['gender']) === 'Laki-laki' ? 'Laki-laki' : 'Perempuan' ?>
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
