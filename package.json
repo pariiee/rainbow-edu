@@ -1,0 +1,14 @@
+{
+  "name": "rainbow-edu",
+  "private": true,
+  "scripts": {
+    "dev": "tailwindcss -i ./public/css/input.css -o ./public/css/app.css --watch",
+    "build": "tailwindcss -i ./public/css/input.css -o ./public/css/app.css --minify"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.1.18",
+    "tailwindcss": "^4.1.18",
+    "postcss": "^8.4.38",
+    "autoprefixer": "^10.4.19"
+  }
+}

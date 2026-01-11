@@ -124,3 +124,9 @@ _modules/*
 
 /results/
 /phpunit*.xml
+#-------------------------
+# Node / Tailwind
+#-------------------------
+node_modules/
+npm-debug.log*
+yarn-error.log*
