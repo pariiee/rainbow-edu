@@ -1,10 +1,10 @@
 <x-guest-layout>
-    <form method="POST" action="{{ route('register') }}">
+    <form method="POST" action="{{ route('register') }}" id="registerForm">
         @csrf
 
         <!-- Name -->
         <div>
-            <x-input-label for="name" :value="__('Name')" />
+            <x-input-label for="name" :value="__('Nama Lengkap')" />
             <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
             <x-input-error :messages="$errors->get('name')" class="mt-2" />
         </div>
@@ -16,46 +16,157 @@
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
+        <!-- Role Selection -->
         <div class="mt-4">
-            <x-input-label for="role" :value="__('Role')" />
-            <select id="role" name="role" class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm" required>
-                <option value="orang_tua" {{ old('role') == 'orang_tua' ? 'selected' : '' }}>Orang Tua</option>
-                <option value="guru" {{ old('role') == 'guru' ? 'selected' : '' }}>Guru</option>
+            <x-input-label for="role_type" :value="__('Daftar Sebagai')" />
+            <select id="role_type" name="role_type" class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm" required onchange="toggleFields()">
+                <option value="orang_tua" {{ old('role_type', 'orang_tua') == 'orang_tua' ? 'selected' : '' }}>Orang Tua</option>
+                <option value="guru" {{ old('role_type') == 'guru' ? 'selected' : '' }}>Guru</option>
             </select>
-            <x-input-error :messages="$errors->get('role')" class="mt-2" />
+            <x-input-error :messages="$errors->get('role_type')" class="mt-2" />
+        </div>
+
+        <!-- Nama Anak (hanya untuk orang tua) -->
+        <div id="nama_anak_field" class="mt-4">
+            <x-input-label for="nama_anak" :value="__('Nama Anak')" class="required-field" />
+            <x-text-input id="nama_anak" class="block mt-1 w-full" type="text" name="nama_anak" :value="old('nama_anak')" />
+            <x-input-error :messages="$errors->get('nama_anak')" class="mt-2" />
+        </div>
+
+        <!-- ID Guru (hanya untuk guru) -->
+        <div id="id_guru_field" class="mt-4" style="display: none;">
+            <x-input-label for="id_guru" :value="__('ID Guru (5 digit)')" class="required-field" />
+            <x-text-input id="id_guru" class="block mt-1 w-full" type="text" name="id_guru" :value="old('id_guru')" maxlength="5" />
+            <p class="text-sm text-gray-500 mt-1">Masukkan 5 digit angka untuk ID Guru</p>
+            <x-input-error :messages="$errors->get('id_guru')" class="mt-2" />
         </div>
 
         <!-- Password -->
         <div class="mt-4">
             <x-input-label for="password" :value="__('Password')" />
-
             <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="new-password" />
-
+                          type="password"
+                          name="password"
+                          required autocomplete="new-password" />
             <x-input-error :messages="$errors->get('password')" class="mt-2" />
         </div>
 
         <!-- Confirm Password -->
         <div class="mt-4">
-            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
-
+            <x-input-label for="password_confirmation" :value="__('Konfirmasi Password')" />
             <x-text-input id="password_confirmation" class="block mt-1 w-full"
-                            type="password"
-                            name="password_confirmation" required autocomplete="new-password" />
-
+                          type="password"
+                          name="password_confirmation" required autocomplete="new-password" />
             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
         </div>
 
         <div class="flex items-center justify-end mt-4">
             <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" href="{{ route('login') }}">
-                {{ __('Already registered?') }}
+                {{ __('Sudah punya akun?') }}
             </a>
 
             <x-primary-button class="ms-4">
-                {{ __('Register') }}
+                {{ __('Daftar') }}
             </x-primary-button>
         </div>
     </form>
+
+    <script>
+        // Fungsi untuk menampilkan/menyembunyikan field berdasarkan role
+        function toggleFields() {
+            const roleType = document.getElementById('role_type').value;
+            const namaAnakField = document.getElementById('nama_anak_field');
+            const idGuruField = document.getElementById('id_guru_field');
+            const namaAnakInput = document.getElementById('nama_anak');
+            const idGuruInput = document.getElementById('id_guru');
+
+            if (roleType === 'orang_tua') {
+                // Tampilkan nama anak, sembunyikan ID guru
+                namaAnakField.style.display = 'block';
+                idGuruField.style.display = 'none';
+                
+                // Set required
+                namaAnakInput.required = true;
+                idGuruInput.required = false;
+                
+                // Clear ID guru jika ada
+                idGuruInput.value = '';
+            } else {
+                // Tampilkan ID guru, sembunyikan nama anak
+                namaAnakField.style.display = 'none';
+                idGuruField.style.display = 'block';
+                
+                // Set required
+                namaAnakInput.required = false;
+                idGuruInput.required = true;
+                
+                // Clear nama anak jika ada
+                namaAnakInput.value = '';
+            }
+        }
+
+        // Jalankan saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inisialisasi field berdasarkan role yang dipilih
+            toggleFields();
+            
+            // Validasi ID Guru hanya angka
+            document.getElementById('id_guru').addEventListener('input', function(e) {
+                this.value = this.value.replace(/[^0-9]/g, '');
+            });
+            
+            // Validasi form sebelum submit
+            document.getElementById('registerForm').addEventListener('submit', function(e) {
+                const roleType = document.getElementById('role_type').value;
+                const idGuru = document.getElementById('id_guru').value;
+                const namaAnak = document.getElementById('nama_anak').value;
+                
+                if (roleType === 'orang_tua') {
+                    // Validasi Nama Anak harus diisi
+                    if (!namaAnak.trim()) {
+                        e.preventDefault();
+                        alert('Nama Anak harus diisi untuk pendaftaran sebagai Orang Tua');
+                        document.getElementById('nama_anak').focus();
+                        return false;
+                    }
+                } else if (roleType === 'guru') {
+                    // Validasi ID Guru harus 5 digit
+                    if (idGuru.length !== 5) {
+                        e.preventDefault();
+                        alert('ID Guru harus tepat 5 digit angka');
+                        document.getElementById('id_guru').focus();
+                        return false;
+                    }
+                }
+            });
+        });
+
+        // Fungsi untuk menampilkan pesan error dari server
+        window.onload = function() {
+            @if($errors->has('id_guru'))
+                // Jika ada error di ID guru, tampilkan field ID guru
+                document.getElementById('id_guru_field').style.display = 'block';
+                document.getElementById('nama_anak_field').style.display = 'none';
+            @endif
+            
+            @if($errors->has('nama_anak'))
+                // Jika ada error di nama anak, tampilkan field nama anak
+                document.getElementById('nama_anak_field').style.display = 'block';
+                document.getElementById('id_guru_field').style.display = 'none';
+            @endif
+        };
+    </script>
+
+    <style>
+        /* Styling untuk validasi */
+        .required-field::after {
+            content: " *";
+            color: #ef4444;
+        }
+        
+        /* Smooth transition untuk field */
+        #nama_anak_field, #id_guru_field {
+            transition: all 0.3s ease;
+        }
+    </style>
 </x-guest-layout>
