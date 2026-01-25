@@ -17,4 +17,30 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+// Landing Page
+Route::get('/', function () {
+    return view('welcome');
+})->name('home');
+
+// Admin Routes
+Route::prefix('admin')->group(function () {
+    Route::get('/dashboard', function () {
+        return view('admin.dashboard');
+    })->name('admin.dashboard');
+});
+
+// Guru Routes
+Route::prefix('guru')->group(function () {
+    Route::get('/dashboard', function () {
+        return view('guru.dashboard');
+    })->name('guru.dashboard');
+});
+
+// Siswa Routes
+Route::prefix('siswa')->group(function () {
+    Route::get('/dashboard', function () {
+        return view('siswa.dashboard');
+    })->name('siswa.dashboard');
+});
+
 require __DIR__.'/auth.php';
