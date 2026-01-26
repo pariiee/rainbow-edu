@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
@@ -12,55 +14,204 @@ class User extends Authenticatable
     use HasFactory, Notifiable, HasRoles;
 
     /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
+     * Mass assignable attributes
      */
     protected $fillable = [
         'name',
         'email',
         'password',
+
+        // Role domain
         'role_type',
-        'id_guru',
+        'guru_type', // Ganti id_guru menjadi guru_type
         'nama_anak',
+
+        // OTP
+        'otp',
+        'otp_plain',
+        'otp_expiry',
+        'otp_attempt',
+        'otp_cooldown',
+
+        // Password reset (custom)
+        'reset_token',
+        'reset_token_expiry',
+        'reset_attempt',
+
+        // Verification
+        'is_verified',
+        'verified_at',
+        'last_login',
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
+     * Hidden attributes
      */
     protected $hidden = [
         'password',
         'remember_token',
+        'otp',
+        'reset_token',
     ];
 
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
+     * Attribute casting
      */
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'email_verified_at'   => 'datetime',
+            'verified_at'         => 'datetime',
+            'last_login'          => 'datetime',
+            'otp_expiry'          => 'datetime',
+            'otp_cooldown'        => 'datetime',
+            'reset_token_expiry'  => 'datetime',
+            'is_verified'         => 'boolean',
+            'password'            => 'hashed',
         ];
     }
 
-    /**
-     * Scope untuk user dengan role orang tua
-     */
+    /* =====================================================
+     | QUERY SCOPES
+     ===================================================== */
+
     public function scopeOrangTua($query)
     {
         return $query->where('role_type', 'orang_tua');
     }
 
-    /**
-     * Scope untuk user dengan role guru
-     */
     public function scopeGuru($query)
     {
         return $query->where('role_type', 'guru');
+    }
+
+    public function scopeGuruPaud($query)
+    {
+        return $query->where('guru_type', 'PAUD');
+    }
+
+    public function scopeGuruLearn($query)
+    {
+        return $query->where('guru_type', 'Learn kursus');
+    }
+
+    public function scopeGuruHomelearning($query)
+    {
+        return $query->where('guru_type', 'Homelearning kursus private');
+    }
+
+    /* =====================================================
+     | OTP LOGIC
+     ===================================================== */
+
+    public function canRequestOtp(): bool
+    {
+        if (!$this->otp_cooldown) {
+            return true;
+        }
+
+        return Carbon::now()->gt($this->otp_cooldown);
+    }
+
+    public function updateOtp(array $data): bool
+    {
+        return $this->update($data);
+    }
+
+    public function verifyOtp(string $otp): bool
+    {
+        if (!$this->otp || !$this->otp_expiry) {
+            return false;
+        }
+
+        if (Carbon::now()->gt($this->otp_expiry)) {
+            return false;
+        }
+
+        if (Hash::check($otp, $this->otp)) {
+            $this->update([
+                'is_verified' => true,
+                'verified_at' => now(),
+                'otp' => null,
+                'otp_plain' => null,
+                'otp_expiry' => null,
+                'otp_attempt' => 0,
+            ]);
+
+            return true;
+        }
+
+        $this->increment('otp_attempt');
+        return false;
+    }
+
+    /* =====================================================
+     | PASSWORD RESET (CUSTOM)
+     ===================================================== */
+
+    public function canRequestPasswordReset(): bool
+    {
+        if ($this->reset_attempt < 3) {
+            return true;
+        }
+
+        return $this->updated_at->lt(now()->subMinutes(15));
+    }
+
+    public function createPasswordResetToken(): string
+    {
+        $token = bin2hex(random_bytes(32));
+
+        $this->update([
+            'reset_token' => Hash::make($token),
+            'reset_token_expiry' => now()->addHour(),
+            'reset_attempt' => 0,
+        ]);
+
+        return $token;
+    }
+
+    public function verifyResetToken(string $token): bool
+    {
+        if (!$this->reset_token || !$this->reset_token_expiry) {
+            return false;
+        }
+
+        if (now()->gt($this->reset_token_expiry)) {
+            return false;
+        }
+
+        return Hash::check($token, $this->reset_token);
+    }
+
+    public function resetPassword(string $token, string $newPassword): bool
+    {
+        if (!$this->verifyResetToken($token)) {
+            return false;
+        }
+
+        return $this->update([
+            'password' => Hash::make($newPassword),
+            'reset_token' => null,
+            'reset_token_expiry' => null,
+            'reset_attempt' => 0,
+        ]);
+    }
+
+    public function incrementResetAttempt(): void
+    {
+        $this->increment('reset_attempt');
+        $this->touch();
+    }
+
+    /* =====================================================
+     | MAINTENANCE
+     ===================================================== */
+
+    public static function cleanupUnverifiedUsers(): int
+    {
+        return self::where('is_verified', false)
+            ->where('created_at', '<', now()->subMinutes(15))
+            ->delete();
     }
 }

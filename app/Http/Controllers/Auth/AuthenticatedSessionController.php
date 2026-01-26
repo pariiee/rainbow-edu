@@ -26,9 +26,39 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
+        if (!auth()->user()->is_verified) {
+            Auth::logout();
+            return redirect()->route('login')
+                ->with('error', 'Akun belum diverifikasi.');
+        }
+
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        // Redirect berdasarkan role dan divisi guru
+        $user = auth()->user();
+        
+        if ($user->hasRole('admin')) {
+            return redirect()->route('admin.home');
+        }
+        
+        if ($user->hasRole('guru')) {
+            switch ($user->guru_type) {
+                case 'PAUD':
+                    return redirect()->route('guru.paud.home');
+                case 'Learn kursus':
+                    return redirect()->route('guru.learn.home');
+                case 'Homelearning kursus private':
+                    return redirect()->route('guru.homelearning.home');
+                default:
+                    return redirect()->route('dashboard');
+            }
+        }
+        
+        if ($user->hasRole('orang_tua')) {
+            return redirect()->route('orangtua.home');
+        }
+
+        return redirect()->intended(route('dashboard'));
     }
 
     /**

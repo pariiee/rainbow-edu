@@ -27,11 +27,5 @@ class RoleSeeder extends Seeder
             ]);
         }
 
-        $adminUser = User::create([
-            'name' => 'Admin User',
-            'email' => 'gabutmen5@gmail.com',
-            'password' => Hash::make('Admin123'),
-        ]);
-        $adminUser->assignRole('admin');
     }
 }

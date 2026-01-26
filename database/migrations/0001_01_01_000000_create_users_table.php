@@ -11,17 +11,39 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
 
-            $table->string('name');
+            // === BASIC AUTH (Breeze) ===
+            $table->string('name'); // ganti dari username
             $table->string('email')->unique();
             $table->string('password');
 
-            // === ROLE DOMAIN (bukan Spatie role) ===
-            $table->enum('role_type', ['orang_tua', 'guru'])->default('orang_tua');
-            $table->string('id_guru', 5)->nullable()->comment('ID 5 digit untuk guru');
+            // === ROLE DOMAIN (custom, non-spatie) ===
+            $table->enum('role_type', ['admin', 'orang_tua', 'guru'])->default('orang_tua');
+            $table->enum('guru_type', ['PAUD', 'Learn kursus', 'Homelearning kursus private'])->nullable();
             $table->string('nama_anak')->nullable()->comment('Nama anak untuk orang tua');
 
+            // === OTP ===
+            $table->string('otp')->nullable();              // hashed OTP
+            $table->string('otp_plain', 6)->nullable();     // ⚠️ opsional (dev only)
+            $table->dateTime('otp_expiry')->nullable();
+            $table->unsignedTinyInteger('otp_attempt')->default(0);
+            $table->dateTime('otp_cooldown')->nullable();
+
+            // === PASSWORD RESET (custom) ===
+            $table->string('reset_token')->nullable()->index();
+            $table->dateTime('reset_token_expiry')->nullable();
+            $table->unsignedTinyInteger('reset_attempt')->default(0);
+
+            // === VERIFICATION ===
+            $table->boolean('is_verified')->default(false);
+            $table->dateTime('verified_at')->nullable();
+
+            // === META ===
+            $table->dateTime('last_login')->nullable();
             $table->rememberToken();
             $table->timestamps();
+
+            // Index tambahan
+            $table->index(['is_verified', 'created_at']);
         });
     }
 

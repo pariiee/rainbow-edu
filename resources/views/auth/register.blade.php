@@ -33,12 +33,16 @@
             <x-input-error :messages="$errors->get('nama_anak')" class="mt-2" />
         </div>
 
-        <!-- ID Guru (hanya untuk guru) -->
-        <div id="id_guru_field" class="mt-4" style="display: none;">
-            <x-input-label for="id_guru" :value="__('ID Guru (5 digit)')" class="required-field" />
-            <x-text-input id="id_guru" class="block mt-1 w-full" type="text" name="id_guru" :value="old('id_guru')" maxlength="5" />
-            <p class="text-sm text-gray-500 mt-1">Masukkan 5 digit angka untuk ID Guru</p>
-            <x-input-error :messages="$errors->get('id_guru')" class="mt-2" />
+        <!-- Divisi Guru (hanya untuk guru) -->
+        <div id="guru_type_field" class="mt-4" style="display: none;">
+            <x-input-label for="guru_type" :value="__('Divisi Guru')" class="required-field" />
+            <select id="guru_type" name="guru_type" class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm">
+                <option value="">Pilih Divisi</option>
+                <option value="PAUD" {{ old('guru_type') == 'PAUD' ? 'selected' : '' }}>PAUD</option>
+                <option value="Learn kursus" {{ old('guru_type') == 'Learn kursus' ? 'selected' : '' }}>Learn kursus</option>
+                <option value="Homelearning kursus private" {{ old('guru_type') == 'Homelearning kursus private' ? 'selected' : '' }}>Homelearning kursus private</option>
+            </select>
+            <x-input-error :messages="$errors->get('guru_type')" class="mt-2" />
         </div>
 
         <!-- Password -->
@@ -76,29 +80,29 @@
         function toggleFields() {
             const roleType = document.getElementById('role_type').value;
             const namaAnakField = document.getElementById('nama_anak_field');
-            const idGuruField = document.getElementById('id_guru_field');
+            const guruTypeField = document.getElementById('guru_type_field');
             const namaAnakInput = document.getElementById('nama_anak');
-            const idGuruInput = document.getElementById('id_guru');
+            const guruTypeInput = document.getElementById('guru_type');
 
             if (roleType === 'orang_tua') {
-                // Tampilkan nama anak, sembunyikan ID guru
+                // Tampilkan nama anak, sembunyikan divisi guru
                 namaAnakField.style.display = 'block';
-                idGuruField.style.display = 'none';
+                guruTypeField.style.display = 'none';
                 
                 // Set required
                 namaAnakInput.required = true;
-                idGuruInput.required = false;
+                guruTypeInput.required = false;
                 
-                // Clear ID guru jika ada
-                idGuruInput.value = '';
+                // Clear divisi guru jika ada
+                guruTypeInput.value = '';
             } else {
-                // Tampilkan ID guru, sembunyikan nama anak
+                // Tampilkan divisi guru, sembunyikan nama anak
                 namaAnakField.style.display = 'none';
-                idGuruField.style.display = 'block';
+                guruTypeField.style.display = 'block';
                 
                 // Set required
                 namaAnakInput.required = false;
-                idGuruInput.required = true;
+                guruTypeInput.required = true;
                 
                 // Clear nama anak jika ada
                 namaAnakInput.value = '';
@@ -110,15 +114,16 @@
             // Inisialisasi field berdasarkan role yang dipilih
             toggleFields();
             
-            // Validasi ID Guru hanya angka
-            document.getElementById('id_guru').addEventListener('input', function(e) {
-                this.value = this.value.replace(/[^0-9]/g, '');
+            // Validasi Nama Anak hanya huruf dan simbol
+            document.getElementById('nama_anak').addEventListener('input', function(e) {
+                // Hanya memperbolehkan huruf, spasi, titik, koma, tanda kutip, dan tanda hubung
+                this.value = this.value.replace(/[^a-zA-Z\s.,'"-]/g, '');
             });
             
             // Validasi form sebelum submit
             document.getElementById('registerForm').addEventListener('submit', function(e) {
                 const roleType = document.getElementById('role_type').value;
-                const idGuru = document.getElementById('id_guru').value;
+                const guruType = document.getElementById('guru_type').value;
                 const namaAnak = document.getElementById('nama_anak').value;
                 
                 if (roleType === 'orang_tua') {
@@ -130,11 +135,11 @@
                         return false;
                     }
                 } else if (roleType === 'guru') {
-                    // Validasi ID Guru harus 5 digit
-                    if (idGuru.length !== 5) {
+                    // Validasi Divisi Guru harus dipilih
+                    if (!guruType) {
                         e.preventDefault();
-                        alert('ID Guru harus tepat 5 digit angka');
-                        document.getElementById('id_guru').focus();
+                        alert('Divisi Guru harus dipilih');
+                        document.getElementById('guru_type').focus();
                         return false;
                     }
                 }
@@ -143,16 +148,16 @@
 
         // Fungsi untuk menampilkan pesan error dari server
         window.onload = function() {
-            @if($errors->has('id_guru'))
-                // Jika ada error di ID guru, tampilkan field ID guru
-                document.getElementById('id_guru_field').style.display = 'block';
+            @if($errors->has('guru_type'))
+                // Jika ada error di divisi guru, tampilkan field divisi guru
+                document.getElementById('guru_type_field').style.display = 'block';
                 document.getElementById('nama_anak_field').style.display = 'none';
             @endif
             
             @if($errors->has('nama_anak'))
                 // Jika ada error di nama anak, tampilkan field nama anak
                 document.getElementById('nama_anak_field').style.display = 'block';
-                document.getElementById('id_guru_field').style.display = 'none';
+                document.getElementById('guru_type_field').style.display = 'none';
             @endif
         };
     </script>
@@ -165,7 +170,7 @@
         }
         
         /* Smooth transition untuk field */
-        #nama_anak_field, #id_guru_field {
+        #nama_anak_field, #guru_type_field {
             transition: all 0.3s ease;
         }
     </style>
