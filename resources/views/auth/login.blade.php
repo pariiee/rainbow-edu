@@ -168,33 +168,6 @@
                         <div class="absolute inset-0 flex items-center">
                             <div class="w-full border-t border-gray-300 dark:border-gray-700"></div>
                         </div>
-                        <div class="relative flex justify-center text-sm">
-                            <span class="px-4 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
-                                Or continue with
-                            </span>
-                        </div>
-                    </div>
-
-                    <!-- Social Login Buttons -->
-                    <div class="mt-6 grid grid-cols-2 gap-3">
-                        <button
-                            type="button"
-                            class="w-full inline-flex justify-center items-center py-2.5 px-4 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-                        >
-                            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                            </svg>
-                            Google
-                        </button>
-                        <button
-                            type="button"
-                            class="w-full inline-flex justify-center items-center py-2.5 px-4 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-                        >
-                            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 0c-6.626 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm-2 16h-2v-6h2v6zm-1-6.891c-.607 0-1.1-.496-1.1-1.109 0-.612.492-1.109 1.1-1.109s1.1.497 1.1 1.109c0 .613-.493 1.109-1.1 1.109zm8 6.891h-1.998v-3.862c0-1.881-2.002-1.722-2.002 0v3.862h-2v-6h2v1.093c.872-1.616 4-1.736 4 1.548v3.359z"/>
-                            </svg>
-                            LinkedI
-                        </button>
                     </div>
                 </div>
 
