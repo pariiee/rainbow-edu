@@ -19,7 +19,8 @@ return new class extends Migration
 
         // PROFIL BELAJAR
         $table->enum('gaya_belajar', ['Visual', 'Auditori', 'Kinestetik'])->nullable();
-        $table->text('minat_khusus')->nullable();
+        $table->json('minat_khusus')->nullable();
+
         $table->set('temperamen', [
             'Berani/Ekspresif',
             'Observatif/Pendiam',

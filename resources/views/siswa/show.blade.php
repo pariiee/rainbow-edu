@@ -9,7 +9,8 @@
 
 <p><strong>Nama:</strong> {{ $siswa->nama_lengkap }}</p>
 <p><strong>Gender:</strong> {{ $siswa->gender }}</p>
-<p><strong>Layanan:</strong> {{ implode(', ', $siswa->layanan ?? []) }}</p>
+<p><strong>Layanan:</strong> {{ $siswa->layanan ?? '-' }}</p>
+
 
 <hr>
 

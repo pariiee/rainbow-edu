@@ -30,6 +30,13 @@ class SiswaProfile extends Model
         'consent_konten',
     ];
 
+    // ✅ PINDAHKAN KE DALAM CLASS
+    protected $casts = [
+        'minat_khusus' => 'array',
+        'trigger_emosi' => 'array',
+        'strategi_menenangkan' => 'array',
+    ];
+
     public function siswa()
     {
         return $this->belongsTo(Siswa::class);
