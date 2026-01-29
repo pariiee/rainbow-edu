@@ -4,7 +4,11 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\OtpController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SiswaController;
 use Illuminate\Support\Facades\Route;
+
+
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -83,3 +87,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+Route::get('/siswa/create', [SiswaController::class, 'create']);
+Route::post('/siswa', [SiswaController::class, 'store']);
+Route::get('/siswa/{id}', [SiswaController::class, 'show'])->name('siswa.show');
