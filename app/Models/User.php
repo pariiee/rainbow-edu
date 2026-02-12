@@ -2,6 +2,10 @@
 
 namespace App\Models;
 
+use App\Models\Siswa;
+use App\Models\SiswaQuestionnaire;
+use App\Models\Jadwal;
+use App\Models\Chat;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -23,7 +27,7 @@ class User extends Authenticatable
 
         // Role domain
         'role_type',
-        'guru_type', // Ganti id_guru menjadi guru_type
+        'guru_type',
         'nama_anak',
 
         // OTP
@@ -98,6 +102,61 @@ class User extends Authenticatable
     public function scopeGuruHomelearning($query)
     {
         return $query->where('guru_type', 'Homelearning kursus private');
+    }
+
+    /* =====================================================
+     | RELATIONS
+     ===================================================== */
+
+    // Orang tua memiliki banyak siswa
+    public function siswaList()
+    {
+        return $this->hasMany(Siswa::class, 'orang_tua_id');
+    }
+
+    // Guru memiliki banyak siswa yang ditugaskan
+    public function assignedSiswa()
+    {
+        return $this->hasMany(Siswa::class, 'guru_id');
+    }
+
+    // Submission questionnaire
+    public function questionnaires()
+    {
+        return $this->hasMany(SiswaQuestionnaire::class, 'user_id');
+    }
+
+    // ==========================
+    // JADWAL
+    // ==========================
+
+    public function jadwalGuru()
+    {
+        return $this->hasMany(Jadwal::class, 'guru_id');
+    }
+
+    public function jadwalOrtu()
+    {
+        return $this->hasMany(Jadwal::class, 'orang_tua_id');
+    }
+
+    // ==========================
+    // CHAT
+    // ==========================
+
+    public function chatDikirim()
+    {
+        return $this->hasMany(Chat::class, 'pengirim_id');
+    }
+
+    public function chatDiterima()
+    {
+        return $this->hasMany(Chat::class, 'penerima_id');
+    }
+
+    public function unreadMessages()
+    {
+        return $this->chatDiterima()->where('is_read', false);
     }
 
     /* =====================================================

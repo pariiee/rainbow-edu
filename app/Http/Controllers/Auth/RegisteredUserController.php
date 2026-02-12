@@ -23,14 +23,10 @@ class RegisteredUserController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'unique:users,email'],
-            'password' => ['required', 'confirmed'],
-            'role_type' => ['required', 'in:orang_tua,guru'],
+            'password' => ['required', 'confirmed', 'min:8'],
+            'role_type' => ['required', 'in:orang_tua,guru,admin'],
             'guru_type' => ['required_if:role_type,guru', 'nullable', 'in:PAUD,Learn kursus,Homelearning kursus private'],
-            'nama_anak' => ['required_if:role_type,orang_tua', 'nullable', 'string', 'max:255', 'regex:/^[a-zA-Z\s.,\'"-]+$/'],
-        ], [
-            'nama_anak.regex' => 'Nama anak hanya boleh berisi huruf, spasi, dan simbol umum.',
-            'nama_anak.required_if' => 'Nama anak harus diisi untuk pendaftaran sebagai orang tua.',
-            'guru_type.required_if' => 'Divisi guru harus dipilih.',
+            'nama_anak' => ['required_if:role_type,orang_tua', 'nullable', 'string', 'max:255'],
         ]);
 
         $user = User::create([
@@ -44,23 +40,19 @@ class RegisteredUserController extends Controller
         ]);
 
         // Assign role Spatie
-        Role::firstOrCreate(['name' => $validated['role_type'], 'guard_name' => 'web']);
-        $user->assignRole($validated['role_type']);
+        $role = Role::firstOrCreate(['name' => $validated['role_type'], 'guard_name' => 'web']);
+        $user->assignRole($role);
 
-        // OTP
+        // Generate and send OTP
         $otpData = $otpService->generateOtp();
-
-        if (!$otpService->sendOtp($user->email, $otpData['otp_plain'])) {
-            return back()->withErrors([
-                'email' => 'Gagal mengirim OTP. Silakan coba lagi.'
-            ]);
-        }
-
+        $otpService->sendOtp($user->email, $otpData['otp_plain']);
         $user->update($otpData);
 
+        // SIMPAN USER ID DI SESSION
         session(['pending_user_id' => $user->id]);
-
+        
+        // LANGSUNG REDIRECT KE OTP VERIFY (TANPA LOGIN)
         return redirect()->route('otp.verify')
-            ->with('success', 'Kode OTP telah dikirim ke email Anda.');
+            ->with('success', 'Kode OTP telah dikirim ke email ' . $user->email);
     }
 }

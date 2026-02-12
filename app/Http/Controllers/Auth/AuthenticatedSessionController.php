@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\Siswa;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -26,7 +27,9 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
-        if (!auth()->user()->is_verified) {
+        $user = auth()->user();
+
+        if (!$user->is_verified) {
             Auth::logout();
             return redirect()->route('login')
                 ->with('error', 'Akun belum diverifikasi.');
@@ -34,14 +37,15 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        // Redirect berdasarkan role dan divisi guru
-        $user = auth()->user();
-        
-        if ($user->hasRole('admin')) {
+        // Update last login
+        $user->update(['last_login' => now()]);
+
+        // Redirect berdasarkan role
+        if ($user->role_type === 'admin') {
             return redirect()->route('admin.home');
         }
         
-        if ($user->hasRole('guru')) {
+        if ($user->role_type === 'guru') {
             switch ($user->guru_type) {
                 case 'PAUD':
                     return redirect()->route('guru.paud.home');
@@ -54,8 +58,15 @@ class AuthenticatedSessionController extends Controller
             }
         }
         
-        if ($user->hasRole('orang_tua')) {
-            return redirect()->route('orangtua.home');
+        if ($user->role_type === 'orang_tua') {
+            // Cek apakah sudah ada siswa dan sudah pilih layanan
+            $siswa = Siswa::where('orang_tua_id', $user->id)->first();
+            
+            if ($siswa && $siswa->layanan) {
+                return redirect()->route('orangtua.home');
+            }
+            
+            return redirect()->route('ortu.pilih.layanan');
         }
 
         return redirect()->intended(route('dashboard'));
@@ -69,7 +80,6 @@ class AuthenticatedSessionController extends Controller
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
-
         $request->session()->regenerateToken();
 
         return redirect('/');

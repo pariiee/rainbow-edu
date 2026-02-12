@@ -1,4 +1,4 @@
-{{-- resources/views/admin.blade.php --}}
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -42,7 +42,7 @@
 <body>
     <h1>INI PAGE ADMIN</h1>
 
-    {{-- Logout form Laravel Breeze --}}
+    
     <form method="POST" action="{{ route('logout') }}">
         @csrf
         <button type="submit">Logout</button>
