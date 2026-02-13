@@ -25,7 +25,7 @@ class SiswaManagementController extends Controller
             });
         }
         
-        // Filter by layanan
+        // Filter by layanan - Updated to 3 services
         if ($request->filled('layanan')) {
             $query->where('layanan', $request->layanan);
         }
@@ -38,7 +38,8 @@ class SiswaManagementController extends Controller
         $siswas = $query->orderBy('created_at', 'desc')->paginate(10);
         
         $gurus = User::where('role_type', 'guru')->get();
-        $layananList = ['PAUD Rainbow', 'Permata Montessori', 'Rainbow Course', 'Rainbow Home Learning'];
+        // Updated to 3 services only
+        $layananList = ['PAUD', 'Rainbow Course', 'Rainbow Home Learning'];
         
         return view('admin.siswa.index', compact('siswas', 'gurus', 'layananList'));
     }
