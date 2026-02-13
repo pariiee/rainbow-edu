@@ -27,17 +27,38 @@ class JadwalController extends Controller
         $jadwalHariIni = $jadwals->where('tanggal', now()->format('Y-m-d'));
         $jadwalMendatang = $jadwals->where('tanggal', '>', now()->format('Y-m-d'));
         $jadwalSelesai = $jadwals->where('status', 'selesai');
+        $jadwalPending = $jadwals->where('status', 'pending');
+        $jadwalDisetujui = $jadwals->where('status', 'disetujui');
         
         return view('guru.jadwal-index', compact(
             'jadwals',
             'jadwalHariIni',
             'jadwalMendatang',
-            'jadwalSelesai'
+            'jadwalSelesai',
+            'jadwalPending',
+            'jadwalDisetujui'
         ));
     }
 
     /**
+     * Show form to create schedule for specific student
+     * URL: /guru/jadwal/create/{siswaId}
+     */
+    public function create($siswaId)
+    {
+        $siswa = Siswa::with(['orangTua', 'guru'])->findOrFail($siswaId);
+        
+        // Cek akses
+        if ($siswa->guru_id !== Auth::id()) {
+            abort(403, 'Anda tidak memiliki akses ke siswa ini.');
+        }
+
+        return view('guru.jadwal-create', compact('siswa'));
+    }
+
+    /**
      * Store a new schedule
+     * URL: /guru/jadwal/store/{siswaId}
      */
     public function store(Request $request, $siswaId)
     {
@@ -72,28 +93,57 @@ class JadwalController extends Controller
             'siswa' => $siswa->nama_lengkap
         ]);
 
-        return redirect()->route('guru.jadwal.show', $jadwal->id)
+        return redirect()->route('guru.jadwal.detail', $jadwal->id)
             ->with('success', 'Jadwal berhasil dibuat dan menunggu persetujuan orang tua.');
     }
 
     /**
-     * Show specific schedule
+     * Show specific schedule by ID jadwal
+     * URL: /guru/jadwal/detail/{id}
      */
-    public function show($id)
+    public function detail($id)
     {
         $jadwal = Jadwal::with(['siswa', 'guru', 'orangTua'])
                        ->findOrFail($id);
         
         // Cek akses
-        if ($jadwal->guru_id !== Auth::id() && $jadwal->orang_tua_id !== Auth::id()) {
-            abort(403);
+        if ($jadwal->guru_id !== Auth::id()) {
+            abort(403, 'Anda tidak memiliki akses ke jadwal ini.');
         }
 
         return view('guru.jadwal-show', compact('jadwal'));
     }
 
     /**
+     * Show schedule by student ID - REDIRECT KE CREATE ATAU DETAIL
+     * URL: /guru/jadwal/siswa/{siswaId}
+     */
+    public function bySiswa($siswaId)
+    {
+        $siswa = Siswa::findOrFail($siswaId);
+        
+        // Cek akses
+        if ($siswa->guru_id !== Auth::id()) {
+            abort(403, 'Anda tidak memiliki akses ke siswa ini.');
+        }
+
+        // Cek apakah sudah ada jadwal pending atau disetujui
+        $jadwalAktif = Jadwal::where('siswa_id', $siswaId)
+                            ->whereIn('status', ['pending', 'disetujui'])
+                            ->first();
+
+        if ($jadwalAktif) {
+            // Jika ada jadwal aktif, redirect ke detail
+            return redirect()->route('guru.jadwal.detail', $jadwalAktif->id);
+        } else {
+            // Jika belum ada, redirect ke form create
+            return redirect()->route('guru.jadwal.create', $siswaId);
+        }
+    }
+
+    /**
      * Update schedule status
+     * URL: /guru/jadwal/{id}/status
      */
     public function updateStatus(Request $request, $id)
     {
@@ -110,10 +160,11 @@ class JadwalController extends Controller
         } elseif ($request->status == 'selesai' && Auth::id() == $jadwal->guru_id) {
             $jadwal->status = 'selesai';
             $jadwal->feedback_guru = $request->feedback;
-        } elseif ($request->status == 'dibatalkan') {
+        } elseif ($request->status == 'dibatalkan' && Auth::id() == $jadwal->guru_id) {
             $jadwal->status = 'dibatalkan';
+            $jadwal->feedback_guru = $request->feedback ?? 'Dibatalkan oleh guru';
         } else {
-            abort(403);
+            abort(403, 'Anda tidak memiliki izin untuk mengubah status ini.');
         }
 
         $jadwal->save();
@@ -123,13 +174,14 @@ class JadwalController extends Controller
 
     /**
      * Delete schedule
+     * URL: /guru/jadwal/{id}
      */
     public function destroy($id)
     {
         $jadwal = Jadwal::findOrFail($id);
         
         if ($jadwal->guru_id !== Auth::id()) {
-            abort(403);
+            abort(403, 'Anda tidak memiliki akses untuk menghapus jadwal ini.');
         }
 
         $jadwal->delete();

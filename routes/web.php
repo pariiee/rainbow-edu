@@ -64,7 +64,7 @@ Route::get('/after-verify', function () {
     }
 
     if ($user->role_type === 'admin') {
-        return redirect()->route('admin.home');
+        return redirect()->route('admin.dashboard');
     }
 
     return redirect()->route('dashboard');
@@ -85,7 +85,7 @@ Route::middleware(['auth'])->group(function () {
         $user = auth()->user();
 
         if ($user->role_type === 'admin') {
-            return redirect()->route('admin.home');
+            return redirect()->route('admin.dashboard');
         }
 
         if ($user->role_type === 'guru') {
@@ -107,38 +107,100 @@ Route::middleware(['auth'])->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| ADMIN ROUTES
+| ADMIN ROUTES - COMPLETE
 |--------------------------------------------------------------------------
 */
 
 Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('/home', fn() => view('admin.home'))->name('admin.home');
+    
+    // Dashboard
+    Route::get('/dashboard', [App\Http\Controllers\Admin\AdminController::class, 'dashboard'])->name('admin.dashboard');
+    Route::get('/home', function () {
+        return redirect()->route('admin.dashboard');
+    })->name('admin.home');
+    
+    // User Management - Guru
+    Route::prefix('users/guru')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\UserManagementController::class, 'guruIndex'])->name('admin.users.guru.index');
+        Route::get('/create', [App\Http\Controllers\Admin\UserManagementController::class, 'guruCreate'])->name('admin.users.guru.create');
+        Route::post('/', [App\Http\Controllers\Admin\UserManagementController::class, 'guruStore'])->name('admin.users.guru.store');
+        Route::get('/{id}', [App\Http\Controllers\Admin\UserManagementController::class, 'guruShow'])->name('admin.users.guru.show');
+        Route::get('/{id}/edit', [App\Http\Controllers\Admin\UserManagementController::class, 'guruEdit'])->name('admin.users.guru.edit');
+        Route::put('/{id}', [App\Http\Controllers\Admin\UserManagementController::class, 'guruUpdate'])->name('admin.users.guru.update');
+        Route::post('/{id}/reset-password', [App\Http\Controllers\Admin\UserManagementController::class, 'guruResetPassword'])->name('admin.users.guru.reset');
+        Route::delete('/{id}', [App\Http\Controllers\Admin\UserManagementController::class, 'guruDestroy'])->name('admin.users.guru.destroy');
+    });
+    
+    // User Management - Orang Tua
+    Route::prefix('users/ortu')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\UserManagementController::class, 'ortuIndex'])->name('admin.users.ortu.index');
+        Route::get('/{id}', [App\Http\Controllers\Admin\UserManagementController::class, 'ortuShow'])->name('admin.users.ortu.show');
+        Route::post('/{id}/reset-password', [App\Http\Controllers\Admin\UserManagementController::class, 'ortuResetPassword'])->name('admin.users.ortu.reset');
+        Route::delete('/{id}', [App\Http\Controllers\Admin\UserManagementController::class, 'ortuDestroy'])->name('admin.users.ortu.destroy');
+    });
+    
+    // Siswa Management
+    Route::prefix('siswa')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\SiswaManagementController::class, 'index'])->name('admin.siswa.index');
+        Route::get('/{id}', [App\Http\Controllers\Admin\SiswaManagementController::class, 'show'])->name('admin.siswa.show');
+        Route::post('/{id}/reassign-guru', [App\Http\Controllers\Admin\SiswaManagementController::class, 'reassignGuru'])->name('admin.siswa.reassign');
+        Route::delete('/{id}', [App\Http\Controllers\Admin\SiswaManagementController::class, 'destroy'])->name('admin.siswa.destroy');
+        
+        // Export
+        Route::get('/export/siswa', [App\Http\Controllers\Admin\SiswaManagementController::class, 'export'])->name('admin.siswa.export');
+        Route::get('/export/guru', [App\Http\Controllers\Admin\SiswaManagementController::class, 'exportGuru'])->name('admin.siswa.export-guru');
+        Route::get('/export/ortu', [App\Http\Controllers\Admin\SiswaManagementController::class, 'exportOrtu'])->name('admin.siswa.export-ortu');
+    });
+    
+    // Broadcast
+    Route::prefix('broadcast')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\BroadcastController::class, 'index'])->name('admin.broadcast.index');
+        Route::get('/create', [App\Http\Controllers\Admin\BroadcastController::class, 'create'])->name('admin.broadcast.create');
+        Route::post('/', [App\Http\Controllers\Admin\BroadcastController::class, 'store'])->name('admin.broadcast.store');
+        Route::get('/{id}', [App\Http\Controllers\Admin\BroadcastController::class, 'show'])->name('admin.broadcast.show');
+        Route::post('/{id}/send', [App\Http\Controllers\Admin\BroadcastController::class, 'send'])->name('admin.broadcast.send');
+        Route::delete('/{id}', [App\Http\Controllers\Admin\BroadcastController::class, 'destroy'])->name('admin.broadcast.destroy');
+        Route::get('/stats/overview', [App\Http\Controllers\Admin\BroadcastController::class, 'stats'])->name('admin.broadcast.stats');
+    });
 });
 
 
 /*
 |--------------------------------------------------------------------------
-| GURU ROUTES
+| GURU ROUTES - FIX: SEPARATE ROUTES FOR DIFFERENT PARAMETERS
 |--------------------------------------------------------------------------
 */
 
 Route::prefix('guru')->middleware(['auth', 'role:guru'])->group(function () {
 
-    // Dashboard
+    // ============ DASHBOARD ============
     Route::get('/paud', [GuruDashboardController::class, 'paudHome'])->name('guru.paud.home');
     Route::get('/learn', [GuruDashboardController::class, 'learnHome'])->name('guru.learn.home');
     Route::get('/homelearning', [GuruDashboardController::class, 'homelearningHome'])->name('guru.homelearning.home');
 
-    /*
-    |--------------------------------------------------------------------------
-    | GURU JADWAL
-    |--------------------------------------------------------------------------
-    */
+    // ============ ROUTE KOMPATIBILITAS ============
+    Route::get('/atur-jadwal/{siswaId}', [GuruDashboardController::class, 'aturJadwal'])->name('guru.atur.jadwal');
 
+    // ============ JADWAL MANAGEMENT ============
+    // Index - list semua jadwal
     Route::get('/jadwal', [JadwalController::class, 'index'])->name('guru.jadwal.index');
-    Route::get('/jadwal/{id}', [JadwalController::class, 'show'])->name('guru.jadwal.show');
-    Route::post('/jadwal/{siswaId}', [JadwalController::class, 'store'])->name('guru.jadwal.store');
+    
+    // Create jadwal untuk siswa tertentu
+    Route::get('/jadwal/create/{siswaId}', [JadwalController::class, 'create'])->name('guru.jadwal.create');
+    
+    // Store jadwal baru
+    Route::post('/jadwal/store/{siswaId}', [JadwalController::class, 'store'])->name('guru.jadwal.store');
+    
+    // Lihat jadwal berdasarkan siswa (redirect ke create atau detail)
+    Route::get('/jadwal/siswa/{siswaId}', [JadwalController::class, 'bySiswa'])->name('guru.jadwal.siswa');
+    
+    // Detail jadwal berdasarkan ID jadwal
+    Route::get('/jadwal/detail/{id}', [JadwalController::class, 'detail'])->name('guru.jadwal.detail');
+    
+    // Update status jadwal
     Route::put('/jadwal/{id}/status', [JadwalController::class, 'updateStatus'])->name('guru.jadwal.status');
+    
+    // Delete jadwal
     Route::delete('/jadwal/{id}', [JadwalController::class, 'destroy'])->name('guru.jadwal.destroy');
 });
 
@@ -159,12 +221,7 @@ Route::prefix('orangtua')->middleware(['auth', 'role:orang_tua'])->group(functio
     Route::get('/pertanyaan/{siswaId}', [RegistrationFlowController::class, 'pertanyaanMigration'])->name('ortu.pertanyaan.migration');
     Route::post('/pertanyaan/{siswaId}', [RegistrationFlowController::class, 'storePertanyaan'])->name('ortu.store.pertanyaan');
 
-    /*
-    |--------------------------------------------------------------------------
-    | ORTU JADWAL
-    |--------------------------------------------------------------------------
-    */
-
+    // ============ JADWAL ORANG TUA ============
     Route::get('/jadwal', [JadwalOrtuController::class, 'index'])->name('ortu.jadwal.index');
     Route::get('/jadwal/{id}', [JadwalOrtuController::class, 'show'])->name('ortu.jadwal.show');
     Route::post('/jadwal/{id}/approve', [JadwalOrtuController::class, 'approve'])->name('ortu.jadwal.approve');
@@ -209,4 +266,44 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+
+/*
+|--------------------------------------------------------------------------
+| DEBUG ROUTE (HAPUS DI PRODUCTION)
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/debug/assign-siswa', function () {
+        $user = Auth::user();
+
+        if ($user->role_type !== 'guru') {
+            return 'Hanya untuk guru';
+        }
+
+        $siswa = Siswa::with('orangTua')
+            ->where('guru_id', $user->id)
+            ->get();
+
+        return response()->json([
+            'guru' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'guru_type' => $user->guru_type,
+            ],
+            'total_siswa' => $siswa->count(),
+            'siswa_list' => $siswa->map(function ($s) {
+                return [
+                    'id' => $s->id,
+                    'nama' => $s->nama_lengkap,
+                    'layanan' => $s->layanan,
+                    'status' => $s->status_assign,
+                    'orang_tua' => $s->orangTua->name ?? '-',
+                ];
+            }),
+        ]);
+    })->name('debug.assign');
 });

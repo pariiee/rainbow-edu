@@ -20,7 +20,7 @@
         }
 
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
         }
 
@@ -131,11 +131,6 @@
             color: #2d3748;
         }
 
-        .status-cancelled {
-            background: #e2e8f0;
-            color: #718096;
-        }
-
         .info-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -167,7 +162,7 @@
         }
 
         .info-label {
-            width: 100px;
+            width: 120px;
             color: #718096;
             font-size: 14px;
         }
@@ -214,17 +209,16 @@
             font-size: 14px;
         }
 
-        textarea {
+        select, textarea {
             width: 100%;
             padding: 14px 18px;
             border: 2px solid #e2e8f0;
             border-radius: 12px;
             font-size: 15px;
             transition: all 0.3s ease;
-            resize: vertical;
         }
 
-        textarea:focus {
+        select:focus, textarea:focus {
             border-color: #667eea;
             outline: none;
             box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
@@ -236,7 +230,7 @@
             margin-top: 25px;
         }
 
-        @media (max-width: 640px) {
+        @media (max-width: 768px) {
             .info-grid {
                 grid-template-columns: 1fr;
             }
@@ -263,7 +257,7 @@
                 <h1>
                     <span>📅</span> Detail Jadwal
                 </h1>
-                <a href="{{ route('ortu.jadwal.index') }}" class="btn-back">
+                <a href="{{ route('guru.jadwal.index') }}" class="btn-back">
                     ← Kembali
                 </a>
             </div>
@@ -274,7 +268,7 @@
                 switch($jadwal->status) {
                     case 'pending':
                         $statusClass = 'status-pending';
-                        $statusText = '⏳ Menunggu Persetujuan Anda';
+                        $statusText = '⏳ Menunggu Persetujuan Orang Tua';
                         break;
                     case 'disetujui':
                         $statusClass = 'status-approved';
@@ -285,7 +279,7 @@
                         $statusText = '🎉 Selesai';
                         break;
                     case 'dibatalkan':
-                        $statusClass = 'status-cancelled';
+                        $statusClass = 'status-pending';
                         $statusText = '❌ Dibatalkan';
                         break;
                 }
@@ -301,11 +295,11 @@
                         <span>👤</span> Data Siswa
                     </h3>
                     <div class="info-row">
-                        <span class="info-label">Nama</span>
+                        <span class="info-label">Nama Lengkap</span>
                         <span class="info-value">{{ $jadwal->siswa->nama_lengkap }}</span>
                     </div>
                     <div class="info-row">
-                        <span class="info-label">Panggilan</span>
+                        <span class="info-label">Nama Panggilan</span>
                         <span class="info-value">{{ $jadwal->siswa->nama_panggilan ?? '-' }}</span>
                     </div>
                     <div class="info-row">
@@ -320,19 +314,19 @@
 
                 <div class="info-section">
                     <h3>
-                        <span>🧑‍🏫</span> Data Guru
+                        <span>👪</span> Data Orang Tua
                     </h3>
                     <div class="info-row">
                         <span class="info-label">Nama</span>
-                        <span class="info-value">{{ $jadwal->guru->name }}</span>
+                        <span class="info-value">{{ $jadwal->orangTua->name ?? '-' }}</span>
                     </div>
                     <div class="info-row">
                         <span class="info-label">Email</span>
-                        <span class="info-value">{{ $jadwal->guru->email }}</span>
+                        <span class="info-value">{{ $jadwal->orangTua->email ?? '-' }}</span>
                     </div>
                     <div class="info-row">
-                        <span class="info-label">Divisi</span>
-                        <span class="info-value">{{ $jadwal->guru->guru_type }}</span>
+                        <span class="info-label">Nama Anak</span>
+                        <span class="info-value">{{ $jadwal->orangTua->nama_anak ?? '-' }}</span>
                     </div>
                 </div>
             </div>
@@ -375,90 +369,61 @@
                 </div>
                 @endif
 
-                @if($jadwal->feedback_guru)
+                @if($jadwal->feedback_ortu)
                 <div style="margin-top: 20px;">
                     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
                         <span style="font-size: 20px;">💬</span>
-                        <span style="font-weight: 600; color: #2d3748;">Feedback Guru:</span>
+                        <span style="font-weight: 600; color: #2d3748;">Feedback Orang Tua:</span>
                     </div>
                     <div style="background: #ebf8ff; padding: 20px; border-radius: 16px; color: #2c5282; border-left: 4px solid #4299e1;">
-                        {{ $jadwal->feedback_guru }}
+                        {{ $jadwal->feedback_ortu }}
                     </div>
+                </div>
+                @endif
+
+                @if($jadwal->status == 'disetujui' && auth()->id() == $jadwal->guru_id)
+                <div style="margin-top: 30px;">
+                    <form action="{{ route('guru.jadwal.status', $jadwal->id) }}" method="POST">
+                        @csrf
+                        @method('PUT')
+                        <input type="hidden" name="status" value="selesai">
+                        
+                        <div class="form-group">
+                            <label for="feedback">Feedback setelah mengajar</label>
+                            <textarea name="feedback" id="feedback" rows="4" 
+                                      placeholder="Tulis catatan atau feedback tentang proses belajar hari ini..." 
+                                      required></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn-primary btn-success">
+                            ✅ Selesaikan Jadwal & Kirim Feedback
+                        </button>
+                    </form>
+                </div>
+                @endif
+
+                @if($jadwal->status == 'pending' && auth()->id() == $jadwal->guru_id)
+                <div style="margin-top: 30px; padding-top: 30px; border-top: 2px solid #e2e8f0;">
+                    <form action="{{ route('guru.jadwal.destroy', $jadwal->id) }}" method="POST" 
+                          onsubmit="return confirm('Batalkan jadwal ini?')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn-primary btn-danger">
+                            ❌ Batalkan Jadwal
+                        </button>
+                    </form>
                 </div>
                 @endif
             </div>
 
-            @if($jadwal->status == 'pending')
-            <div style="margin-top: 30px;">
-                <form action="{{ route('ortu.jadwal.approve', $jadwal->id) }}" method="POST" id="approveForm">
-                    @csrf
-                    <div class="form-group">
-                        <label for="feedback">Feedback (opsional)</label>
-                        <textarea name="feedback" id="feedback" rows="3" 
-                                  placeholder="Tulis pesan atau konfirmasi untuk guru...">{{ old('feedback') }}</textarea>
-                    </div>
-                    
-                    <div class="btn-group">
-                        <button type="submit" class="btn-primary btn-success" style="flex: 2;">
-                            ✅ Setujui Jadwal
-                        </button>
-                        <button type="button" class="btn-primary btn-danger" style="flex: 1;" onclick="showRejectForm()">
-                            ❌ Tolak
-                        </button>
-                    </div>
-                </form>
-
-                <form action="{{ route('ortu.jadwal.reject', $jadwal->id) }}" method="POST" id="rejectForm" style="display: none; margin-top: 20px;">
-                    @csrf
-                    <div class="form-group">
-                        <label for="alasan">Alasan Penolakan <span style="color: #e53e3e;">*</span></label>
-                        <textarea name="alasan" id="alasan" rows="3" 
-                                  placeholder="Tulis alasan mengapa jadwal ini ditolak..." required></textarea>
-                    </div>
-                    
-                    <div class="btn-group">
-                        <button type="submit" class="btn-primary btn-danger" style="flex: 2;">
-                            ✅ Konfirmasi Penolakan
-                        </button>
-                        <button type="button" class="btn-primary" style="flex: 1; background: #718096;" onclick="hideRejectForm()">
-                            Batal
-                        </button>
-                    </div>
-                </form>
-            </div>
-
-            <script>
-                function showRejectForm() {
-                    document.getElementById('approveForm').style.display = 'none';
-                    document.getElementById('rejectForm').style.display = 'block';
-                }
-                
-                function hideRejectForm() {
-                    document.getElementById('approveForm').style.display = 'block';
-                    document.getElementById('rejectForm').style.display = 'none';
-                }
-            </script>
-            @endif
-
-            @if($jadwal->status == 'disetujui' || $jadwal->status == 'selesai')
-            <div style="margin-top: 30px; text-align: center;">
+            <div style="margin-top: 30px; display: flex; justify-content: center; gap: 20px;">
                 <a href="{{ route('chat.show', $jadwal->siswa_id) }}" class="btn-primary">
-                    💬 Chat dengan Guru
+                    💬 Chat dengan Orang Tua
+                </a>
+                <a href="{{ route('guru.jadwal.index') }}" class="btn-primary" style="background: #718096;">
+                    📋 Lihat Semua Jadwal
                 </a>
             </div>
-            @endif
-
-            @if($jadwal->feedback_ortu)
-            <div style="margin-top: 30px;">
-                <div class="feedback-box">
-                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                        <span style="font-size: 20px;">💬</span>
-                        <span style="font-weight: 600; color: #2d3748;">Feedback Anda:</span>
-                    </div>
-                    <p style="color: #4a5568;">{{ $jadwal->feedback_ortu }}</p>
-                </div>
-            </div>
-            @endif
         </div>
     </div>
 </body>

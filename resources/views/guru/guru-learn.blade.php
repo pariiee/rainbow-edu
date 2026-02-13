@@ -57,6 +57,15 @@
             font-weight: 700;
         }
 
+        .welcome p {
+            color: #718096;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
         .badge {
             background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
             color: white;
@@ -85,10 +94,31 @@
             overflow: hidden;
         }
 
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            width: 100px;
+            height: 100px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+
         .stat-number {
             font-size: 42px;
             font-weight: 700;
             margin-bottom: 4px;
+            position: relative;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .btn-logout {
@@ -127,6 +157,7 @@
             padding: 25px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.08);
             transition: all 0.3s ease;
+            animation: fadeIn 0.5s ease;
             display: flex;
             align-items: center;
             gap: 20px;
@@ -163,13 +194,20 @@
             margin-bottom: 4px;
         }
 
+        .stat-info .sub {
+            font-size: 13px;
+            color: #a0aec0;
+        }
+
         /* Main Content */
         .main-content {
             display: grid;
             grid-template-columns: 1fr 350px;
             gap: 30px;
+            margin-bottom: 30px;
         }
 
+        /* Course Card */
         .card {
             background: white;
             border-radius: 24px;
@@ -234,6 +272,7 @@
             justify-content: center;
             color: white;
             font-size: 24px;
+            font-weight: 600;
         }
 
         .course-info {
@@ -311,6 +350,15 @@
             box-shadow: 0 10px 20px rgba(56, 161, 105, 0.3);
         }
 
+        .btn-chat {
+            background: #38a169 !important;
+        }
+
+        .btn-chat:hover {
+            background: #2f855a !important;
+            box-shadow: 0 10px 20px rgba(56, 161, 105, 0.3) !important;
+        }
+
         /* Sidebar */
         .sidebar {
             display: flex;
@@ -359,6 +407,30 @@
             font-size: 13px;
         }
 
+        .profile-stats {
+            display: flex;
+            justify-content: space-around;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .profile-stat {
+            text-align: center;
+        }
+
+        .profile-stat .value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 4px;
+        }
+
+        .profile-stat .label {
+            font-size: 12px;
+            color: #718096;
+        }
+
+        /* Schedule Card */
         .schedule-card {
             background: white;
             border-radius: 24px;
@@ -399,6 +471,33 @@
             text-align: center;
         }
 
+        .schedule-info {
+            flex: 1;
+        }
+
+        .schedule-title {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 2px;
+        }
+
+        .schedule-sub {
+            font-size: 12px;
+            color: #718096;
+        }
+
+        /* Action Buttons Container */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .action-buttons .btn-action {
+            flex: 1;
+        }
+
+        /* Empty State */
         .empty-state {
             text-align: center;
             padding: 60px 20px;
@@ -410,6 +509,19 @@
             opacity: 0.5;
         }
 
+        .empty-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+
+        .empty-desc {
+            color: #718096;
+            margin-bottom: 24px;
+        }
+
+        /* Animations */
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -421,6 +533,7 @@
             }
         }
 
+        /* Responsive */
         @media (max-width: 1024px) {
             .main-content {
                 grid-template-columns: 1fr;
@@ -435,6 +548,7 @@
             .header {
                 flex-direction: column;
                 text-align: center;
+                padding: 25px;
             }
 
             .stats-grid {
@@ -444,6 +558,30 @@
             .course-grid {
                 grid-template-columns: 1fr;
             }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #2f855a 0%, #38a169 100%);
         }
     </style>
 </head>
@@ -464,9 +602,11 @@
             <div class="stats-wrapper">
                 <div class="stat-card">
                     <div class="stat-number">{{ $totalSiswa ?? 0 }}</div>
-                    <div class="stat-label">Total Siswa</div>
+                    <div class="stat-label">
+                        <span>📚</span> Total Siswa Aktif
+                    </div>
                 </div>
-                <form method="POST" action="{{ route('logout') }}">
+                <form method="POST" action="{{ route('logout') }}" style="display: inline;">
                     @csrf
                     <button type="submit" class="btn-logout">
                         <span>🚪</span> Keluar
@@ -511,7 +651,9 @@
                     <h2>
                         <span>📚</span> Daftar Siswa Rainbow Course
                     </h2>
-                    <span style="color: #38a169; font-weight: 600;">{{ $siswaList->count() ?? 0 }} Siswa</span>
+                    <span style="color: #38a169; font-weight: 600; background: #f0fff4; padding: 8px 16px; border-radius: 50px; font-size: 14px;">
+                        {{ $siswaList->count() ?? 0 }} Siswa
+                    </span>
                 </div>
 
                 @if(isset($siswaList) && $siswaList->count() > 0)
@@ -536,7 +678,15 @@
                                     <span>📱</span> Kontak: {{ $siswa->orangTua->email ?? '-' }}
                                 </div>
                                 <div class="detail-row">
-                                    <span>📊</span> Progress Belajar:
+                                    <span>📊</span> Status: 
+                                    @if($siswa->status_assign == 'active')
+                                        <span style="color: #38a169; font-weight: 600;">Aktif</span>
+                                    @else
+                                        <span style="color: #e53e3e; font-weight: 600;">Pending</span>
+                                    @endif
+                                </div>
+                                <div class="detail-row">
+                                    <span>📈</span> Progress Belajar:
                                 </div>
                                 <div class="progress-bar">
                                     <div class="progress-fill" style="width: 75%;"></div>
@@ -547,12 +697,13 @@
                                 </div>
                             </div>
 
-                            <div style="display: flex; gap: 10px;">
-                                <a href="{{ route('guru.atur.jadwal', $siswa->id) }}" class="btn-action" style="flex: 2;">
+                            <!-- Action Buttons - Updated sesuai permintaan -->
+                            <div class="action-buttons">
+                                <a href="{{ route('guru.jadwal.siswa', $siswa->id) }}" class="btn-action">
                                     <span>📅</span> Atur Jadwal
                                 </a>
-                                <a href="#" class="btn-action" style="flex: 1; background: #4299e1;">
-                                    <span>📝</span> Nilai
+                                <a href="{{ route('chat.show', $siswa->id) }}" class="btn-action btn-chat">
+                                    <span>💬</span> Chat
                                 </a>
                             </div>
                         </div>
@@ -563,7 +714,11 @@
                         <div class="empty-icon">📚</div>
                         <div class="empty-title">Belum Ada Siswa Kursus</div>
                         <div class="empty-desc">
-                            Siswa yang mendaftar Rainbow Course akan muncul di sini.
+                            Siswa yang mendaftar Rainbow Course akan muncul di sini.<br>
+                            Saat ini belum ada siswa yang terdaftar.
+                        </div>
+                        <div style="color: #38a169; font-size: 14px;">
+                            <span>⏳</span> Menunggu pendaftaran baru...
                         </div>
                     </div>
                 @endif
@@ -571,6 +726,7 @@
 
             <!-- Sidebar -->
             <div class="sidebar">
+                <!-- Profile Card -->
                 <div class="profile-card">
                     <div class="profile-avatar">
                         {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
@@ -578,35 +734,100 @@
                     <div class="profile-name">{{ auth()->user()->name }}</div>
                     <div class="profile-role">📚 Guru Learn</div>
                     
-                    <div style="display: flex; justify-content: space-around; padding-top: 20px; border-top: 2px solid #f0f0f0;">
-                        <div style="text-align: center;">
-                            <div style="font-size: 24px; font-weight: 700; color: #2d3748;">{{ $totalSiswa ?? 0 }}</div>
-                            <div style="font-size: 12px; color: #718096;">Total</div>
+                    <div class="profile-stats">
+                        <div class="profile-stat">
+                            <div class="value">{{ $totalSiswa ?? 0 }}</div>
+                            <div class="label">Total Siswa</div>
                         </div>
-                        <div style="text-align: center;">
-                            <div style="font-size: 24px; font-weight: 700; color: #38a169;">{{ $siswaAktif ?? 0 }}</div>
-                            <div style="font-size: 12px; color: #718096;">Aktif</div>
+                        <div class="profile-stat">
+                            <div class="value">{{ $siswaAktif ?? $siswaList->where('status_assign', 'active')->count() ?? 0 }}</div>
+                            <div class="label">Aktif</div>
+                        </div>
+                        <div class="profile-stat">
+                            <div class="value">{{ $siswaPending ?? $siswaList->where('status_assign', 'pending')->count() ?? 0 }}</div>
+                            <div class="label">Pending</div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Jadwal Mengajar -->
                 <div class="schedule-card">
                     <div class="schedule-header">
                         <h3>
                             <span>⏰</span> Jadwal Mengajar
                         </h3>
+                        <span style="color: #38a169; font-size: 13px;">{{ now()->format('d M Y') }}</span>
                     </div>
 
-                    <div style="text-align: center; padding: 20px 0;">
-                        <div style="font-size: 48px; margin-bottom: 15px;">📆</div>
-                        <div style="color: #718096;">Belum ada jadwal</div>
-                        <a href="#" style="display: block; margin-top: 20px; color: #38a169; text-decoration: none; font-weight: 600;">
-                            Atur Jadwal Baru →
-                        </a>
-                    </div>
+                    @php
+                        $hasSchedule = false;
+                    @endphp
+
+                    @if($hasSchedule)
+                        <div class="schedule-item">
+                            <div class="schedule-time">09:00</div>
+                            <div class="schedule-info">
+                                <div class="schedule-title">Matematika Dasar</div>
+                                <div class="schedule-sub">Budi - Kelas 1</div>
+                            </div>
+                        </div>
+                        <div class="schedule-item">
+                            <div class="schedule-time">11:00</div>
+                            <div class="schedule-info">
+                                <div class="schedule-title">Bahasa Inggris</div>
+                                <div class="schedule-sub">Ani - Kelas 2</div>
+                            </div>
+                        </div>
+                    @else
+                        <div style="text-align: center; padding: 30px 0;">
+                            <div style="font-size: 40px; margin-bottom: 15px;">📆</div>
+                            <div style="color: #718096; margin-bottom: 10px;">Tidak ada jadwal mengajar hari ini</div>
+                            <div style="font-size: 13px; color: #a0aec0;">Gunakan fitur "Atur Jadwal" untuk membuat jadwal belajar</div>
+                        </div>
+                    @endif
+
+                    <a href="#" style="display: block; text-align: center; margin-top: 20px; padding-top: 20px; border-top: 2px solid #f0f0f0; color: #38a169; text-decoration: none; font-weight: 600; font-size: 14px;">
+                        Lihat Semua Jadwal →
+                    </a>
+                </div>
+
+                <!-- Catatan Penting -->
+                <div class="schedule-card" style="background: linear-gradient(135deg, #38a169 0%, #2f855a 100%); color: white;">
+                    <h3 style="color: white; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+                        <span>📌</span> Catatan Penting
+                    </h3>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin-bottom: 15px; display: flex; gap: 10px;">
+                            <span>•</span>
+                            <span style="font-size: 14px;">Lakukan absensi siswa setiap kali selesai sesi belajar</span>
+                        </li>
+                        <li style="margin-bottom: 15px; display: flex; gap: 10px;">
+                            <span>•</span>
+                            <span style="font-size: 14px;">Update progress belajar minimal 1x seminggu</span>
+                        </li>
+                        <li style="display: flex; gap: 10px;">
+                            <span>•</span>
+                            <span style="font-size: 14px;">Konfirmasi jadwal dengan orang tua H-1</span>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>
     </div>
+
+    <script>
+        // Any additional JavaScript functionality can go here
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add smooth scrolling for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
+            });
+        });
+    </script>
 </body>
 </html>

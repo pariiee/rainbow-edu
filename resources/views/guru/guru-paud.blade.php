@@ -522,6 +522,26 @@
             margin-bottom: 24px;
         }
 
+        /* Action Buttons Container */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .action-buttons .btn-action {
+            flex: 1;
+        }
+
+        .btn-chat {
+            background: #38a169;
+        }
+
+        .btn-chat:hover {
+            background: #2f855a;
+            box-shadow: 0 10px 20px rgba(56, 161, 105, 0.3);
+        }
+
         /* Animations */
         @keyframes fadeIn {
             from {
@@ -558,6 +578,10 @@
 
             .siswa-grid {
                 grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
             }
         }
 
@@ -703,18 +727,15 @@
                                 @endif
                             </div>
 
-                            <div style="display: flex; gap: 10px; margin-top: 10px;">
-    <a href="{{ route('guru.jadwal.show', $siswa->id) }}" class="btn-action" style="flex: 1;">
-        <span>📅</span> Lihat Jadwal
-    </a>
-
-    <a href="{{ route('chat.show', $siswa->id) }}" 
-       class="btn-action" 
-       style="flex: 1; background: #38a169;">
-        <span>💬</span> Chat
-    </a>
-</div>
-
+                            <!-- Action Buttons - Updated sesuai permintaan -->
+                            <div class="action-buttons">
+                                <a href="{{ route('guru.jadwal.siswa', $siswa->id) }}" class="btn-action">
+                                    📅 Atur Jadwal
+                                </a>
+                                <a href="{{ route('chat.show', $siswa->id) }}" class="btn-action btn-chat">
+                                    💬 Chat
+                                </a>
+                            </div>
                         </div>
                         @endforeach
                     </div>
@@ -845,6 +866,11 @@
                 }
             });
         }
+
+        // Mobile menu handling if needed
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add any additional JavaScript functionality here
+        });
     </script>
 </body>
 </html>

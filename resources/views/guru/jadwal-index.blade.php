@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jadwal Belajar - Rainbow Edu</title>
+    <title>Jadwal Mengajar - Rainbow Edu</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -58,8 +58,8 @@
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 25px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
             margin-bottom: 30px;
         }
 
@@ -88,7 +88,7 @@
         .stat-info h3 {
             font-size: 14px;
             color: #718096;
-            margin-bottom: 6px;
+            margin-bottom: 5px;
         }
 
         .stat-info .number {
@@ -119,28 +119,6 @@
             display: flex;
             align-items: center;
             gap: 10px;
-        }
-
-        .badge {
-            padding: 6px 16px;
-            border-radius: 50px;
-            font-size: 13px;
-            font-weight: 600;
-        }
-
-        .badge-pending {
-            background: #fed7d7;
-            color: #742a2a;
-        }
-
-        .badge-approved {
-            background: #c6f6d5;
-            color: #22543d;
-        }
-
-        .badge-completed {
-            background: #e2e8f0;
-            color: #2d3748;
         }
 
         .jadwal-card {
@@ -197,39 +175,39 @@
             font-size: 14px;
         }
 
-        .jadwal-notes {
-            margin-top: 8px;
-            color: #4a5568;
-            font-size: 14px;
-            background: white;
-            padding: 8px 12px;
-            border-radius: 8px;
+        .badge {
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 600;
         }
 
-        .jadwal-action {
-            min-width: 150px;
-            text-align: right;
+        .badge-pending {
+            background: #fed7d7;
+            color: #742a2a;
         }
 
-        .btn-action {
-            display: inline-block;
-            padding: 10px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .badge-approved {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .badge-completed {
+            background: #e2e8f0;
+            color: #2d3748;
+        }
+
+        .btn-view {
+            padding: 8px 16px;
+            background: #667eea;
             color: white;
             text-decoration: none;
             border-radius: 10px;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
-            border: none;
-            cursor: pointer;
-        }
-
-        .btn-approve {
-            background: #38a169;
-        }
-
-        .btn-reject {
-            background: #e53e3e;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
         }
 
         .empty-state {
@@ -258,12 +236,6 @@
                 margin-bottom: 15px;
                 width: 100%;
             }
-            
-            .jadwal-action {
-                text-align: left;
-                margin-top: 15px;
-                width: 100%;
-            }
         }
     </style>
 </head>
@@ -271,128 +243,124 @@
     <div class="container">
         <div class="header">
             <h1>
-                <span>📅</span> Jadwal Belajar
+                <span>📅</span> Jadwal Mengajar
             </h1>
-            <a href="{{ route('orangtua.home') }}" class="btn-back">
+            <a href="javascript:history.back()" class="btn-back">
                 ← Kembali
             </a>
         </div>
-
-        @if(session('success'))
-            <div style="background: #e3fcef; color: #0a6e4d; padding: 16px; border-radius: 12px; margin-bottom: 20px;">
-                ✅ {{ session('success') }}
-            </div>
-        @endif
 
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon">⏳</div>
                 <div class="stat-info">
                     <h3>Menunggu</h3>
-                    <div class="number">{{ $jadwalPending->count() }}</div>
+                    <div class="number">{{ $jadwals->where('status', 'pending')->count() }}</div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">✅</div>
                 <div class="stat-info">
                     <h3>Disetujui</h3>
-                    <div class="number">{{ $jadwalDisetujui->count() }}</div>
+                    <div class="number">{{ $jadwals->where('status', 'disetujui')->count() }}</div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">🎉</div>
                 <div class="stat-info">
                     <h3>Selesai</h3>
-                    <div class="number">{{ $jadwalSelesai->count() }}</div>
+                    <div class="number">{{ $jadwals->where('status', 'selesai')->count() }}</div>
                 </div>
             </div>
         </div>
 
-        @if($jadwalPending->count() > 0)
+        <!-- Jadwal Hari Ini -->
+        @if($jadwalHariIni->count() > 0)
         <div class="jadwal-section">
             <div class="section-title">
                 <h2>
-                    <span>⏳</span> Perlu Persetujuan
+                    <span>📌</span> Hari Ini
                 </h2>
-                <span class="badge badge-pending">{{ $jadwalPending->count() }} Jadwal</span>
+                <span style="color: #667eea; font-weight: 600;">{{ now()->format('d F Y') }}</span>
             </div>
 
-            @foreach($jadwalPending as $jadwal)
+            @foreach($jadwalHariIni as $jadwal)
             <div class="jadwal-card">
                 <div class="jadwal-date">
                     <div class="day">{{ $jadwal->tanggal->format('d') }}</div>
-                    <div class="month">{{ $jadwal->tanggal->format('M Y') }}</div>
+                    <div class="month">{{ $jadwal->tanggal->format('M') }}</div>
                 </div>
                 <div class="jadwal-info">
-                    <div class="jadwal-siswa">
-                        {{ $jadwal->siswa->nama_lengkap }}
-                        <span style="font-size: 12px; color: #718096; margin-left: 10px;">
-                            {{ $jadwal->siswa->layanan }}
+                    <div class="jadwal-siswa">{{ $jadwal->siswa->nama_lengkap }}</div>
+                    <div class="jadwal-time">
+                        <span>⏰ {{ $jadwal->waktu->format('H:i') }}</span>
+                        <span>⏱️ {{ $jadwal->durasi }} menit</span>
+                        <span>
+                            @if($jadwal->status == 'pending')
+                                <span class="badge badge-pending">Menunggu</span>
+                            @elseif($jadwal->status == 'disetujui')
+                                <span class="badge badge-approved">Disetujui</span>
+                            @elseif($jadwal->status == 'selesai')
+                                <span class="badge badge-completed">Selesai</span>
+                            @endif
                         </span>
                     </div>
-                    <div class="jadwal-time">
-                        <span>⏰ {{ $jadwal->waktu->format('H:i') }}</span>
-                        <span>⏱️ {{ $jadwal->durasi }} menit</span>
-                        <span>👤 {{ $jadwal->guru->name }}</span>
-                    </div>
-                    @if($jadwal->catatan)
-                    <div class="jadwal-notes">
-                        📝 {{ $jadwal->catatan }}
-                    </div>
-                    @endif
                 </div>
-                <div class="jadwal-action">
-                    <a href="{{ route('ortu.jadwal.show', $jadwal->id) }}" class="btn-action" style="margin-bottom: 5px;">
-                        Lihat Detail
-                    </a>
-                </div>
+                <a href="{{ route('guru.jadwal.show', $jadwal->id) }}" class="btn-view">
+                    Detail →
+                </a>
             </div>
             @endforeach
         </div>
         @endif
 
-        @if($jadwalDisetujui->count() > 0)
+        <!-- Jadwal Mendatang -->
+        @if($jadwalMendatang->count() > 0)
         <div class="jadwal-section">
             <div class="section-title">
                 <h2>
-                    <span>✅</span> Jadwal Disetujui
+                    <span>📆</span> Jadwal Mendatang
                 </h2>
-                <span class="badge badge-approved">{{ $jadwalDisetujui->count() }} Jadwal</span>
+                <span style="color: #718096;">{{ $jadwalMendatang->count() }} Jadwal</span>
             </div>
 
-            @foreach($jadwalDisetujui as $jadwal)
+            @foreach($jadwalMendatang as $jadwal)
             <div class="jadwal-card">
                 <div class="jadwal-date">
                     <div class="day">{{ $jadwal->tanggal->format('d') }}</div>
                     <div class="month">{{ $jadwal->tanggal->format('M Y') }}</div>
                 </div>
                 <div class="jadwal-info">
-                    <div class="jadwal-siswa">
-                        {{ $jadwal->siswa->nama_lengkap }}
-                    </div>
+                    <div class="jadwal-siswa">{{ $jadwal->siswa->nama_lengkap }}</div>
                     <div class="jadwal-time">
                         <span>⏰ {{ $jadwal->waktu->format('H:i') }}</span>
                         <span>⏱️ {{ $jadwal->durasi }} menit</span>
-                        <span>👤 {{ $jadwal->guru->name }}</span>
+                        <span>
+                            @if($jadwal->status == 'pending')
+                                <span class="badge badge-pending">Menunggu</span>
+                            @elseif($jadwal->status == 'disetujui')
+                                <span class="badge badge-approved">Disetujui</span>
+                            @endif
+                        </span>
                     </div>
                 </div>
-                <div class="jadwal-action">
-                    <a href="{{ route('ortu.jadwal.show', $jadwal->id) }}" class="btn-action">
-                        Lihat Detail
-                    </a>
-                </div>
+                <a href="{{ route('guru.jadwal.detail', $jadwal->id) }}" class="btn-view">
+
+                    Detail →
+                </a>
             </div>
             @endforeach
         </div>
         @endif
 
+        <!-- Jadwal Selesai -->
         @if($jadwalSelesai->count() > 0)
         <div class="jadwal-section">
             <div class="section-title">
                 <h2>
                     <span>🎉</span> Riwayat Selesai
                 </h2>
-                <span class="badge badge-completed">{{ $jadwalSelesai->count() }} Jadwal</span>
+                <span style="color: #718096;">{{ $jadwalSelesai->count() }} Jadwal</span>
             </div>
 
             @foreach($jadwalSelesai as $jadwal)
@@ -402,19 +370,15 @@
                     <div class="month">{{ $jadwal->tanggal->format('M Y') }}</div>
                 </div>
                 <div class="jadwal-info">
-                    <div class="jadwal-siswa">
-                        {{ $jadwal->siswa->nama_lengkap }}
-                    </div>
+                    <div class="jadwal-siswa">{{ $jadwal->siswa->nama_lengkap }}</div>
                     <div class="jadwal-time">
                         <span>⏰ {{ $jadwal->waktu->format('H:i') }}</span>
-                        <span>👤 {{ $jadwal->guru->name }}</span>
+                        <span>✅ Selesai</span>
                     </div>
                 </div>
-                <div class="jadwal-action">
-                    <a href="{{ route('ortu.jadwal.show', $jadwal->id) }}" class="btn-action" style="background: #718096;">
-                        Lihat Detail
-                    </a>
-                </div>
+                <a href="{{ route('guru.jadwal.show', $jadwal->id) }}" class="btn-view" style="background: #718096;">
+                    Detail →
+                </a>
             </div>
             @endforeach
         </div>
@@ -425,12 +389,7 @@
             <div class="empty-state">
                 <div class="empty-icon">📅</div>
                 <h3 style="margin-bottom: 10px; color: #2d3748;">Belum Ada Jadwal</h3>
-                <p style="color: #718096; margin-bottom: 20px;">
-                    Guru akan mengirimkan jadwal belajar untuk putra/putri Anda.
-                </p>
-                <a href="{{ route('orangtua.home') }}" class="btn-action">
-                    Kembali ke Home
-                </a>
+                <p style="color: #718096;">Anda belum membuat jadwal belajar.</p>
             </div>
         </div>
         @endif

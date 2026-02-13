@@ -6,8 +6,10 @@ use App\Models\Siswa;
 use App\Models\SiswaQuestionnaire;
 use App\Models\Jadwal;
 use App\Models\Chat;
+use App\Models\Notification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
@@ -15,7 +17,7 @@ use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, Notifiable, HasRoles, SoftDeletes;
 
     /**
      * Mass assignable attributes
@@ -59,7 +61,7 @@ class User extends Authenticatable
     ];
 
     /**
-     * Attribute casting
+     * Casts
      */
     protected function casts(): array
     {
@@ -108,27 +110,20 @@ class User extends Authenticatable
      | RELATIONS
      ===================================================== */
 
-    // Orang tua memiliki banyak siswa
     public function siswaList()
     {
         return $this->hasMany(Siswa::class, 'orang_tua_id');
     }
 
-    // Guru memiliki banyak siswa yang ditugaskan
     public function assignedSiswa()
     {
         return $this->hasMany(Siswa::class, 'guru_id');
     }
 
-    // Submission questionnaire
     public function questionnaires()
     {
         return $this->hasMany(SiswaQuestionnaire::class, 'user_id');
     }
-
-    // ==========================
-    // JADWAL
-    // ==========================
 
     public function jadwalGuru()
     {
@@ -139,10 +134,6 @@ class User extends Authenticatable
     {
         return $this->hasMany(Jadwal::class, 'orang_tua_id');
     }
-
-    // ==========================
-    // CHAT
-    // ==========================
 
     public function chatDikirim()
     {
@@ -157,6 +148,25 @@ class User extends Authenticatable
     public function unreadMessages()
     {
         return $this->chatDiterima()->where('is_read', false);
+    }
+
+    /* ==========================
+       NOTIFICATIONS (CUSTOM)
+       ========================== */
+
+    public function notifications()
+    {
+        return $this->belongsToMany(Notification::class, 'user_notifications')
+            ->withPivot('is_read', 'read_at')
+            ->withTimestamps();
+    }
+
+    public function unreadNotifications()
+    {
+        return $this->belongsToMany(Notification::class, 'user_notifications')
+            ->withPivot('is_read', 'read_at')
+            ->wherePivot('is_read', false)
+            ->withTimestamps();
     }
 
     /* =====================================================

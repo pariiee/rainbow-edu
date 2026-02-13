@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Guru;
 
 use App\Http\Controllers\Controller;
 use App\Models\Siswa;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -88,17 +89,17 @@ class GuruDashboardController extends Controller
     }
 
     /**
-     * Atur Jadwal
+     * Atur Jadwal - KOMPATIBILITAS UNTUK VIEW LAMA
+     * Redirect ke route baru guru.jadwal.show
      */
     public function aturJadwal($siswaId)
     {
         $siswa = Siswa::with(['orangTua', 'guru'])->findOrFail($siswaId);
 
-        // Validasi akses
         if ($siswa->guru_id !== Auth::id()) {
             abort(403, 'Anda tidak memiliki akses ke siswa ini.');
         }
 
-        return view('guru.atur-jadwal', compact('siswa'));
+        return redirect()->route('guru.jadwal.show', $siswaId);
     }
 }

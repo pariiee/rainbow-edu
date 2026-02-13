@@ -270,6 +270,12 @@
             align-items: center;
             gap: 8px;
             margin-right: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-back:hover {
+            background: #e2e8f0;
+            transform: translateX(-5px);
         }
 
         .empty-state {
@@ -303,7 +309,7 @@
         @if(auth()->user()->role_type == 'orang_tua')
         <div class="sidebar">
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 25px;">
-                <a href="{{ route('orangtua.home') }}" class="btn-back" style="padding: 8px 16px;">
+                <a href="javascript:void(0)" onclick="goBack()" class="btn-back" style="padding: 8px 16px;">
                     ←
                 </a>
                 <h3>Daftar Guru</h3>
@@ -351,11 +357,10 @@
                 @endphp
                 
                 <div class="chat-header">
-                    @if(auth()->user()->role_type == 'guru')
-                    <a href="{{ route('guru.paud.home') }}" class="btn-back">
+                    <!-- TOMBOL BACK UNTUK SEMUA ROLE - Menggunakan JavaScript goBack() -->
+                    <a href="javascript:void(0)" onclick="goBack()" class="btn-back">
                         ←
                     </a>
-                    @endif
                     
                     <div class="chat-avatar">
                         {{ strtoupper(substr($lawanBicara->name, 0, 1)) }}
@@ -364,7 +369,11 @@
                         <div class="chat-name">{{ $lawanBicara->name }}</div>
                         <div class="chat-status">
                             <span style="display: inline-block; width: 8px; height: 8px; background: #38a169; border-radius: 50%;"></span>
-                            {{ auth()->user()->role_type == 'orang_tua' ? 'Guru ' . $lawanBicara->guru_type : 'Orang Tua' }}
+                            @if(auth()->user()->role_type == 'orang_tua')
+                                Guru {{ $lawanBicara->guru_type }}
+                            @else
+                                {{ $lawanBicara->role_type == 'orang_tua' ? 'Orang Tua' : 'Guru' }}
+                            @endif
                         </div>
                     </div>
                     <div style="color: #718096; font-size: 14px;">
@@ -379,10 +388,12 @@
                                 <div class="message-text">{{ $chat->pesan }}</div>
                                 <div class="message-time">
                                     {{ $chat->created_at->format('H:i') }}
-                                    @if($chat->pengirim_id == auth()->id() && $chat->is_read)
-                                        ✓✓
-                                    @elseif($chat->pengirim_id == auth()->id())
-                                        ✓
+                                    @if($chat->pengirim_id == auth()->id())
+                                        @if($chat->is_read)
+                                            ✓✓
+                                        @else
+                                            ✓
+                                        @endif
                                     @endif
                                 </div>
                             </div>
@@ -415,12 +426,22 @@
                     <div style="font-size: 64px; margin-bottom: 20px;">💬</div>
                     <h2 style="margin-bottom: 10px; color: #2d3748;">Pilih Guru</h2>
                     <p style="color: #718096;">Pilih guru untuk memulai percakapan</p>
+                    
+                    <!-- Tombol Back untuk empty state -->
+                    <a href="javascript:void(0)" onclick="goBack()" class="btn-back" style="margin-top: 20px; padding: 12px 30px;">
+                        ← Kembali
+                    </a>
                 </div>
             @endif
         </div>
     </div>
 
     <script>
+        // Fungsi untuk kembali ke halaman sebelumnya
+        function goBack() {
+            window.history.back();
+        }
+
         // Auto scroll ke bawah
         function scrollToBottom() {
             const messages = document.getElementById('chat-messages');
@@ -436,6 +457,11 @@
             const form = this;
             const formData = new FormData(form);
             const messageInput = document.getElementById('message-input');
+            const sendButton = form.querySelector('button[type="submit"]');
+            
+            // Disable button saat mengirim
+            sendButton.disabled = true;
+            sendButton.innerHTML = '<span>⏳</span> Mengirim...';
             
             fetch(form.action, {
                 method: 'POST',
@@ -454,11 +480,14 @@
                     const emptyState = messagesDiv.querySelector('.empty-state');
                     if (emptyState) emptyState.remove();
                     
+                    const now = new Date();
+                    const timeString = now.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'});
+                    
                     const messageHtml = `
                         <div class="message sent">
                             <div class="message-bubble">
-                                <div class="message-text">${data.chat.pesan}</div>
-                                <div class="message-time">${new Date().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'})} ✓</div>
+                                <div class="message-text">${escapeHtml(data.chat.pesan)}</div>
+                                <div class="message-time">${timeString} ✓</div>
                             </div>
                         </div>
                     `;
@@ -466,17 +495,49 @@
                     scrollToBottom();
                 }
             })
-            .catch(error => console.error('Error:', error));
+            .catch(error => console.error('Error:', error))
+            .finally(() => {
+                // Enable button kembali
+                sendButton.disabled = false;
+                sendButton.innerHTML = '<span>📤</span> Kirim';
+            });
         });
+
+        // Fungsi untuk escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
 
         // Scroll ke bawah saat halaman dimuat
         document.addEventListener('DOMContentLoaded', function() {
             scrollToBottom();
             
-            // Refresh chat setiap 5 detik (nanti ganti dengan Pusher)
-            setInterval(function() {
-                location.reload();
-            }, 5000);
+            // Auto refresh chat (bisa diganti dengan Pusher nanti)
+            const chatMessages = document.getElementById('chat-messages');
+            if (chatMessages && chatMessages.children.length > 0) {
+                setInterval(function() {
+                    // Cek pesan baru tanpa reload halaman
+                    fetch(window.location.href, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.text())
+                    .then(html => {
+                        // Parse HTML dan update chat messages
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        const newMessages = doc.getElementById('chat-messages');
+                        if (newMessages) {
+                            chatMessages.innerHTML = newMessages.innerHTML;
+                            scrollToBottom();
+                        }
+                    })
+                    .catch(error => console.error('Error refreshing chat:', error));
+                }, 5000);
+            }
         });
     </script>
 </body>
