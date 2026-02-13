@@ -6,9 +6,7 @@ use App\Models\Siswa;
 use App\Http\Controllers\Auth\OtpController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SiswaController;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SiswaBerkasController;
-
 
 use App\Http\Controllers\Ortu\RegistrationFlowController;
 use App\Http\Controllers\Ortu\OrtuHomeController;
@@ -211,25 +209,46 @@ Route::prefix('guru')->middleware(['auth', 'role:guru'])->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| ORANG TUA ROUTES
+| ORANG TUA ROUTES - UPDATED WITH FORM ROUTES
 |--------------------------------------------------------------------------
 */
 
 Route::prefix('orangtua')->middleware(['auth', 'role:orang_tua'])->group(function () {
 
+    // ============ DASHBOARD/HOME ============
     Route::get('/home', [OrtuHomeController::class, 'index'])->name('orangtua.home');
 
+    // ============ REGISTRATION FLOW - PILIH LAYANAN ============
+    // Pilih Layanan - 3 PILIHAN (PAUD, Learn, Homelearning)
     Route::get('/pilih-layanan', [RegistrationFlowController::class, 'pilihLayanan'])->name('ortu.pilih.layanan');
     Route::post('/pilih-layanan', [RegistrationFlowController::class, 'storeLayanan'])->name('ortu.store.layanan');
 
-    Route::get('/pertanyaan/{siswaId}', [RegistrationFlowController::class, 'pertanyaanMigration'])->name('ortu.pertanyaan.migration');
-    Route::post('/pertanyaan/{siswaId}', [RegistrationFlowController::class, 'storePertanyaan'])->name('ortu.store.pertanyaan');
+    // ============ FORM DATA SISWA - REPLACES PERTANYAAN MIGRATION ============
+    // Form untuk mengisi data lengkap siswa (setelah pilih layanan)
+    Route::get('/form', [RegistrationFlowController::class, 'showForm'])->name('ortu.form');
+    Route::post('/form', [RegistrationFlowController::class, 'storeForm'])->name('ortu.store.form');
+    
+    // Optional: Form dengan parameter siswaId (jika ingin mengedit data siswa tertentu)
+    Route::get('/form/{siswaId}', [RegistrationFlowController::class, 'showForm'])->name('ortu.form.edit');
+    Route::put('/form/{siswaId}', [RegistrationFlowController::class, 'updateForm'])->name('ortu.form.update');
+
+    // ============ FORM SUBMISSION SUCCESS ============
+    Route::get('/form-sukses', function () {
+        return view('ortu.form-success');
+    })->name('ortu.form.success');
 
     // ============ JADWAL ORANG TUA ============
     Route::get('/jadwal', [JadwalOrtuController::class, 'index'])->name('ortu.jadwal.index');
     Route::get('/jadwal/{id}', [JadwalOrtuController::class, 'show'])->name('ortu.jadwal.show');
     Route::post('/jadwal/{id}/approve', [JadwalOrtuController::class, 'approve'])->name('ortu.jadwal.approve');
     Route::post('/jadwal/{id}/reject', [JadwalOrtuController::class, 'reject'])->name('ortu.jadwal.reject');
+
+    // ============ CHAT DARI ORANG TUA ============
+    Route::get('/chat/{siswaId}', [ChatController::class, 'show'])->name('ortu.chat.show');
+
+    // ============ STATUS DAN PROGRESS ============
+    Route::get('/status', [OrtuHomeController::class, 'status'])->name('ortu.status');
+    Route::get('/progress/{siswaId}', [OrtuHomeController::class, 'progress'])->name('ortu.progress');
 });
 
 
@@ -243,7 +262,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/siswa/create', [SiswaController::class, 'create'])->name('siswa.create');
     Route::post('/siswa', [SiswaController::class, 'store'])->name('siswa.store');
     Route::get('/siswa/{id}', [SiswaController::class, 'show'])->name('siswa.show');
-    Route::delete('/siswa/berkas/{id}', [SiswaBerkasController::class, 'destroy']);
+    Route::delete('/siswa/berkas/{id}', [SiswaBerkasController::class, 'destroy'])->name('siswa.berkas.destroy');
 });
 
 
@@ -254,10 +273,20 @@ Route::middleware(['auth'])->group(function () {
 */
 
 Route::middleware(['auth'])->group(function () {
+    // Chat utama - parameter opsional guruId
     Route::get('/chat/{siswaId}/{guruId?}', [ChatController::class, 'show'])->name('chat.show');
+    
+    // Send message
     Route::post('/chat/send', [ChatController::class, 'send'])->name('chat.send');
+    
+    // Get unread count
     Route::get('/chat/unread/count', [ChatController::class, 'unreadCount'])->name('chat.unread');
+    
+    // Mark messages as read
     Route::post('/chat/mark-read', [ChatController::class, 'markAsRead'])->name('chat.markread');
+    
+    // Get chat history (for AJAX)
+    Route::get('/chat/history/{siswaId}/{guruId}', [ChatController::class, 'history'])->name('chat.history');
 });
 
 
@@ -311,4 +340,36 @@ Route::middleware(['auth'])->group(function () {
             }),
         ]);
     })->name('debug.assign');
+    
+    // Debug route untuk cek status form
+    Route::get('/debug/form-status', function () {
+        $user = Auth::user();
+        
+        if ($user->role_type !== 'orang_tua') {
+            return 'Hanya untuk orang tua';
+        }
+        
+        $siswa = Siswa::where('orang_tua_id', $user->id)->first();
+        
+        return response()->json([
+            'user' => $user->name,
+            'siswa' => $siswa ? [
+                'id' => $siswa->id,
+                'nama' => $siswa->nama_lengkap,
+                'layanan' => $siswa->layanan,
+                'has_completed_layanan' => !is_null($siswa->layanan),
+                'has_completed_questionnaire' => !is_null($siswa->tempat_lahir) && 
+                                                !is_null($siswa->tanggal_lahir) && 
+                                                !is_null($siswa->alamat),
+                'questionnaire_fields' => [
+                    'tempat_lahir' => $siswa->tempat_lahir,
+                    'tanggal_lahir' => $siswa->tanggal_lahir,
+                    'alamat' => $siswa->alamat,
+                    'nama_ayah' => $siswa->nama_ayah,
+                    'nama_ibu' => $siswa->nama_ibu,
+                    'no_telepon_ortu' => $siswa->no_telepon_ortu,
+                ]
+            ] : null
+        ]);
+    })->name('debug.form-status');
 });

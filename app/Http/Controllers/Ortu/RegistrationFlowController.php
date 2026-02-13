@@ -14,36 +14,46 @@ use Illuminate\Support\Facades\Log;
 class RegistrationFlowController extends Controller
 {
     /**
-     * Step 1: Pilih layanan
+     * Step 1: Pilih layanan - 3 PILIHAN
      */
     public function pilihLayanan()
     {
         $user = Auth::user();
         
-        // Cek apakah sudah ada siswa
         $siswa = Siswa::where('orang_tua_id', $user->id)->first();
         
         if ($siswa && $siswa->layanan) {
-            return redirect()->route('ortu.pertanyaan.migration', $siswa->id);
+            return redirect()->route('orangtua.home');
         }
         
         return view('ortu.pilih-layanan');
     }
 
     /**
-     * Step 1: Store pilihan layanan - FIX AUTO ASSIGN
+     * Step 1: Store pilihan layanan - 3 PILIHAN
      */
     public function storeLayanan(Request $request)
     {
         $validated = $request->validate([
-            'layanan' => ['required', 'in:PAUD Rainbow,Permata Montessori,Rainbow Course,Rainbow Home Learning'],
+            'layanan' => ['required', 'in:PAUD,Learn,Home Learning'],
         ]);
 
         $user = Auth::user();
 
         DB::beginTransaction();
         try {
-            // Cari atau buat siswa untuk orang tua ini
+            // ============ FIX: MAPPING 3 LAYANAN ============
+            $layananDb = match ($validated['layanan']) {
+                'PAUD' => 'PAUD',                    // BUKAN 'PAUD Rainbow'
+                'Learn' => 'Rainbow Course',         // SAMA
+                'Home Learning' => 'Rainbow Home Learning', // SAMA
+                default => null,
+            };
+
+            if (!$layananDb) {
+                throw new \Exception('Layanan tidak valid');
+            }
+
             $siswa = Siswa::where('orang_tua_id', $user->id)->first();
             
             if (!$siswa) {
@@ -54,40 +64,38 @@ class RegistrationFlowController extends Controller
                 $siswa->status_pendaftaran = 'Baru';
             }
             
-            $siswa->layanan = $validated['layanan'];
+            // SIMPAN LAYANAN - PASTI SESUAI ENUM
+            $siswa->layanan = $layananDb;
             $siswa->save();
 
-            // FIX: ASSIGN GURU OTOMATIS - PASTIKAN BERHASIL
+            // Assign guru
             $this->assignToGuru($siswa, $validated['layanan']);
 
             DB::commit();
-            
-            Log::info('✅ REGISTRASI BERHASIL:', [
-                'siswa' => $siswa->nama_lengkap,
-                'layanan' => $siswa->layanan,
-                'guru_id' => $siswa->guru_id,
-                'guru_nama' => $siswa->guru->name ?? 'TIDAK DITEMUKAN'
-            ]);
 
-            return redirect()->route('ortu.pertanyaan.migration', $siswa->id)
-                           ->with('success', 'Layanan berhasil dipilih! Guru telah ditugaskan.');
+            return redirect()->route('orangtua.home')
+                           ->with('success', 'Layanan berhasil dipilih!');
                            
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('❌ ERROR: ' . $e->getMessage());
+            Log::error('❌ Error: ' . $e->getMessage());
             return back()->with('error', 'Gagal memproses: ' . $e->getMessage());
         }
     }
 
     /**
-     * Step 2: Form pertanyaan migration
+     * Show form untuk mengisi data siswa
      */
-    public function pertanyaanMigration($siswaId)
+    public function showForm()
     {
-        $siswa = Siswa::where('id', $siswaId)
-                      ->where('orang_tua_id', Auth::id())
-                      ->with('guru')
-                      ->firstOrFail();
+        $user = Auth::user();
+        
+        $siswa = Siswa::where('orang_tua_id', $user->id)->first();
+        
+        if (!$siswa) {
+            return redirect()->route('ortu.pilih.layanan')
+                ->with('error', 'Silakan pilih layanan terlebih dahulu.');
+        }
 
         $questionnaire = SiswaQuestionnaire::firstOrCreate(
             [
@@ -96,168 +104,138 @@ class RegistrationFlowController extends Controller
             ]
         );
 
-        return view('ortu.pertanyaan-migration', compact('siswa', 'questionnaire'));
+        return view('ortu.form', compact('siswa', 'questionnaire'));
     }
 
     /**
-     * Step 2: Store atau skip pertanyaan migration
+     * Store data dari form
      */
-    public function storePertanyaan(Request $request, $siswaId)
+    public function storeForm(Request $request)
     {
-        $siswa = Siswa::where('id', $siswaId)
+        $request->validate([
+            'siswa_id' => 'required|exists:siswa,id',
+            'sekolah_sebelumnya' => 'nullable|string|max:255',
+            'usia_anak' => 'required|integer|min:1|max:18',
+            'tujuan_pendaftaran' => 'nullable|string',
+            'tingkat_kemandirian' => 'required|in:Mandiri,Butuh Bantuan,Sangat Butuh Bantuan',
+            'ekspektasi_ortu' => 'nullable|string',
+            'minat_bakat' => 'nullable|string',
+            'catatan_kesehatan' => 'nullable|string',
+        ]);
+
+        $siswa = Siswa::where('id', $request->siswa_id)
                       ->where('orang_tua_id', Auth::id())
                       ->firstOrFail();
-
-        if ($request->has('skip')) {
-            SiswaQuestionnaire::updateOrCreate(
-                [
-                    'siswa_id' => $siswa->id,
-                    'user_id' => Auth::id()
-                ],
-                [
-                    'is_skipped' => true,
-                    'skipped_at' => now(),
-                ]
-            );
-
-            return redirect()->route('orangtua.home')
-                           ->with('success', 'Pertanyaan bisa diisi nanti.');
-        }
-
-        $validated = $request->validate([
-            'sekolah_sebelumnya' => 'nullable|string|max:255',
-            'usia_anak' => 'nullable|integer|min:1|max:18',
-            'tujuan_pendaftaran' => 'nullable|string',
-            'tingkat_kemandirian' => 'nullable|in:Mandiri,Butuh Bantuan,Sangat Butuh Bantuan',
-            'ekspektasi_ortu' => 'nullable|string',
-        ]);
 
         SiswaQuestionnaire::updateOrCreate(
             [
                 'siswa_id' => $siswa->id,
                 'user_id' => Auth::id()
             ],
-            array_merge($validated, [
+            [
+                'sekolah_sebelumnya' => $request->sekolah_sebelumnya,
+                'usia_anak' => $request->usia_anak,
+                'tujuan_pendaftaran' => $request->tujuan_pendaftaran,
+                'tingkat_kemandirian' => $request->tingkat_kemandirian,
+                'ekspektasi_ortu' => $request->ekspektasi_ortu,
+                'minat_bakat' => $request->minat_bakat,
+                'catatan_kesehatan' => $request->catatan_kesehatan,
                 'is_skipped' => false,
                 'completed_at' => now(),
-            ])
+            ]
         );
 
         return redirect()->route('orangtua.home')
-                       ->with('success', 'Data berhasil disimpan!');
+                       ->with('success', 'Data siswa berhasil disimpan!');
     }
 
     /**
-     * FIX: ASSIGN GURU KE SISWA - VERSI PALING STABIL
+     * Assign guru berdasarkan layanan - MAPPING 3 LAYANAN
      */
     private function assignToGuru(Siswa $siswa, string $layanan)
     {
-        // Mapping layanan ke tipe guru
+        // MAPPING 3 LAYANAN KE 3 GURU
         $guruType = match ($layanan) {
-            'PAUD Rainbow', 'Permata Montessori' => 'PAUD',
-            'Rainbow Course' => 'Learn kursus',
-            'Rainbow Home Learning' => 'Homelearning kursus private',
+            'PAUD' => 'PAUD',
+            'Learn' => 'Learn kursus',
+            'Home Learning' => 'Homelearning kursus private',
             default => null,
         };
 
         if (!$guruType) {
-            Log::error('Layanan tidak valid: ' . $layanan);
+            Log::error('❌ Layanan tidak valid:', ['layanan' => $layanan]);
             return false;
         }
 
-        // CARI GURU - PRIORITAS YANG PALING SEDIKIT SISWA
+        // CARI GURU
         $guru = User::where('role_type', 'guru')
                     ->where('guru_type', $guruType)
                     ->where('is_verified', true)
-                    ->get()
-                    ->sortBy(function($g) {
-                        return Siswa::where('guru_id', $g->id)->count();
-                    })
                     ->first();
 
         if ($guru) {
-            // ASSIGN GURU KE SISWA
             $siswa->guru_id = $guru->id;
             $siswa->status_assign = 'active';
             $siswa->save();
             
             Log::info('✅ ASSIGN SUKSES:', [
                 'siswa' => $siswa->nama_lengkap,
-                'guru' => $guru->name,
-                'tipe' => $guru->guru_type
-            ]);
-            
-            return true;
-        } else {
-            Log::error('❌ TIDAK ADA GURU TERSEDIA:', [
-                'tipe' => $guruType,
-                'layanan' => $layanan
-            ]);
-            
-            // FIX: BUAT GURU OTOMATIS JIKA BELUM ADA
-            return $this->createGuruOtomatis($guruType, $siswa);
-        }
-    }
-
-    /**
-     * FIX: BUAT GURU OTOMATIS JIKA BELUM ADA
-     */
-    private function createGuruOtomatis($guruType, Siswa $siswa)
-    {
-        $namaGuru = match ($guruType) {
-            'PAUD' => 'Ibu Sarah Wijaya',
-            'Learn kursus' => 'Bapak Budi Santoso',
-            'Homelearning kursus private' => 'Ibu Rina Andriani',
-            default => 'Guru ' . $guruType
-        };
-
-        $email = match ($guruType) {
-            'PAUD' => 'sarah.paud@rainbow.edu',
-            'Learn kursus' => 'budi.learn@rainbow.edu',
-            'Homelearning kursus private' => 'rina.home@rainbow.edu',
-            default => strtolower(str_replace(' ', '.', $namaGuru)) . '@rainbow.edu'
-        };
-
-        // Cek apakah email sudah digunakan
-        $existingGuru = User::where('email', $email)->first();
-        
-        if ($existingGuru) {
-            $guru = $existingGuru;
-        } else {
-            // Buat guru baru
-            $guru = User::create([
-                'name' => $namaGuru,
-                'email' => $email,
-                'password' => bcrypt('password'),
-                'role_type' => 'guru',
-                'guru_type' => $guruType,
-                'is_verified' => true,
-                'verified_at' => now(),
-            ]);
-
-            // Assign role
-            if (method_exists($guru, 'assignRole')) {
-                $guru->assignRole('guru');
-            }
-            
-            Log::info('✅ GURU BARU DIBUAT:', [
-                'nama' => $guru->name,
-                'email' => $guru->email,
-                'tipe' => $guru->guru_type
-            ]);
-        }
-
-        // Assign ke siswa
-        if ($guru) {
-            $siswa->guru_id = $guru->id;
-            $siswa->status_assign = 'active';
-            $siswa->save();
-            
-            Log::info('✅ ASSIGN KE GURU BARU:', [
-                'siswa' => $siswa->nama_lengkap,
+                'layanan' => $siswa->layanan,
                 'guru' => $guru->name
             ]);
             
+            return true;
+        }
+
+        // BUAT GURU BARU
+        return $this->createGuruOtomatis($guruType, $siswa);
+    }
+
+    /**
+     * Buat guru otomatis
+     */
+    private function createGuruOtomatis($guruType, Siswa $siswa)
+    {
+        $dataGuru = match ($guruType) {
+            'PAUD' => [
+                'name' => 'Ibu Sarah Wijaya',
+                'email' => 'sarah.paud@rainbow.edu',
+            ],
+            'Learn kursus' => [
+                'name' => 'Bapak Budi Santoso',
+                'email' => 'budi.learn@rainbow.edu',
+            ],
+            'Homelearning kursus private' => [
+                'name' => 'Ibu Rina Andriani',
+                'email' => 'rina.home@rainbow.edu',
+            ],
+            default => null
+        };
+
+        if ($dataGuru) {
+            $guru = User::firstOrCreate(
+                ['email' => $dataGuru['email']],
+                [
+                    'name' => $dataGuru['name'],
+                    'email' => $dataGuru['email'],
+                    'password' => bcrypt('password'),
+                    'role_type' => 'guru',
+                    'guru_type' => $guruType,
+                    'is_verified' => true,
+                    'verified_at' => now(),
+                ]
+            );
+
+            $siswa->guru_id = $guru->id;
+            $siswa->status_assign = 'active';
+            $siswa->save();
+
+            Log::info('✅ GURU BARU DIBUAT:', [
+                'guru' => $guru->name,
+                'email' => $guru->email,
+                'type' => $guru->guru_type
+            ]);
+
             return true;
         }
 

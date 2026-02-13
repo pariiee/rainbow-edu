@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 class GuruDashboardController extends Controller
 {
@@ -18,15 +19,35 @@ class GuruDashboardController extends Controller
     {
         $user = Auth::user();
         
-        $siswaList = Siswa::with(['orangTua', 'guru', 'questionnaire'])
-                         ->where('guru_id', $user->id)
-                         ->whereIn('layanan', ['PAUD Rainbow', 'Permata Montessori'])
-                         ->orderBy('created_at', 'desc')
-                         ->get();
+        // CEK USER ROLE
+        if ($user->role_type !== 'guru' || $user->guru_type !== 'PAUD') {
+            abort(403, 'Unauthorized access');
+        }
+
+        // CEK APAKAH KOLOM LAYANAN ADA
+        $hasLayananColumn = Schema::hasColumn('siswa', 'layanan');
+        
+        $query = Siswa::with(['orangTua', 'guru', 'questionnaire'])
+                     ->where('guru_id', $user->id);
+        
+        // HANYA FILTER JIKA KOLOM LAYANAN ADA
+        if ($hasLayananColumn) {
+            $query->whereIn('layanan', ['PAUD Rainbow', 'Permata Montessori']);
+        }
+        
+        $siswaList = $query->orderBy('created_at', 'desc')->get();
 
         $totalSiswa = $siswaList->count();
-        $siswaPaud = $siswaList->where('layanan', 'PAUD Rainbow')->count();
-        $siswaMontessori = $siswaList->where('layanan', 'Permata Montessori')->count();
+        
+        // HITUNG MANUAL
+        $siswaPaud = 0;
+        $siswaMontessori = 0;
+        
+        foreach ($siswaList as $siswa) {
+            if ($siswa->layanan == 'PAUD Rainbow') $siswaPaud++;
+            if ($siswa->layanan == 'Permata Montessori') $siswaMontessori++;
+        }
+        
         $siswaAktif = $siswaList->where('status_assign', 'active')->count();
         $siswaPending = $siswaList->where('status_assign', 'pending')->count();
 
@@ -47,11 +68,20 @@ class GuruDashboardController extends Controller
     {
         $user = Auth::user();
         
-        $siswaList = Siswa::with(['orangTua', 'guru', 'questionnaire'])
-                         ->where('guru_id', $user->id)
-                         ->where('layanan', 'Rainbow Course')
-                         ->orderBy('created_at', 'desc')
-                         ->get();
+        if ($user->role_type !== 'guru' || $user->guru_type !== 'Learn kursus') {
+            abort(403, 'Unauthorized access');
+        }
+
+        $hasLayananColumn = Schema::hasColumn('siswa', 'layanan');
+        
+        $query = Siswa::with(['orangTua', 'guru', 'questionnaire'])
+                     ->where('guru_id', $user->id);
+        
+        if ($hasLayananColumn) {
+            $query->where('layanan', 'Rainbow Course');
+        }
+        
+        $siswaList = $query->orderBy('created_at', 'desc')->get();
 
         $totalSiswa = $siswaList->count();
         $siswaAktif = $siswaList->where('status_assign', 'active')->count();
@@ -72,11 +102,20 @@ class GuruDashboardController extends Controller
     {
         $user = Auth::user();
         
-        $siswaList = Siswa::with(['orangTua', 'guru', 'questionnaire'])
-                         ->where('guru_id', $user->id)
-                         ->where('layanan', 'Rainbow Home Learning')
-                         ->orderBy('created_at', 'desc')
-                         ->get();
+        if ($user->role_type !== 'guru' || $user->guru_type !== 'Homelearning kursus private') {
+            abort(403, 'Unauthorized access');
+        }
+
+        $hasLayananColumn = Schema::hasColumn('siswa', 'layanan');
+        
+        $query = Siswa::with(['orangTua', 'guru', 'questionnaire'])
+                     ->where('guru_id', $user->id);
+        
+        if ($hasLayananColumn) {
+            $query->where('layanan', 'Rainbow Home Learning');
+        }
+        
+        $siswaList = $query->orderBy('created_at', 'desc')->get();
 
         $totalSiswa = $siswaList->count();
         $lokasiMengajar = $siswaList->pluck('alamat_domisili')->filter()->unique()->count();
@@ -89,8 +128,7 @@ class GuruDashboardController extends Controller
     }
 
     /**
-     * Atur Jadwal - KOMPATIBILITAS UNTUK VIEW LAMA
-     * Redirect ke route baru guru.jadwal.show
+     * Atur Jadwal - KOMPATIBILITAS
      */
     public function aturJadwal($siswaId)
     {
@@ -100,6 +138,6 @@ class GuruDashboardController extends Controller
             abort(403, 'Anda tidak memiliki akses ke siswa ini.');
         }
 
-        return redirect()->route('guru.jadwal.show', $siswaId);
+        return redirect()->route('guru.jadwal.siswa', $siswaId);
     }
 }

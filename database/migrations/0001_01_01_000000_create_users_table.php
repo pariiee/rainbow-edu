@@ -12,14 +12,28 @@ return new class extends Migration
             $table->id();
 
             // === BASIC AUTH (Breeze) ===
-            $table->string('name'); // ganti dari username
+            $table->string('name');
             $table->string('email')->unique();
+            $table->timestamp('email_verified_at')->nullable(); // STANDAR LARAVEL
             $table->string('password');
 
             // === ROLE DOMAIN (custom, non-spatie) ===
             $table->enum('role_type', ['admin', 'orang_tua', 'guru'])->default('orang_tua');
-            $table->enum('guru_type', ['PAUD', 'Learn kursus', 'Homelearning kursus private'])->nullable();
-            $table->string('nama_anak')->nullable()->comment('Nama anak untuk orang tua');
+            $table->enum('guru_type', [
+                'PAUD', 
+                'Learn kursus', 
+                'Homelearning kursus private'
+            ])->nullable();
+            
+            // UNTUK ORANG TUA - NAMA ANAK
+            $table->string('nama_anak', 100)->nullable()->comment('Nama anak untuk orang tua');
+
+            // === DATA TAMBAHAN UNTUK ADMIN ===
+            $table->string('phone', 20)->nullable();
+            $table->text('address')->nullable();
+            $table->date('birth_date')->nullable();
+            $table->enum('gender', ['Laki-laki', 'Perempuan'])->nullable();
+            $table->string('avatar')->nullable();
 
             // === OTP ===
             $table->string('otp')->nullable();              // hashed OTP
@@ -39,11 +53,16 @@ return new class extends Migration
 
             // === META ===
             $table->dateTime('last_login')->nullable();
+            $table->string('last_login_ip')->nullable();
+            $table->string('created_by')->nullable();
             $table->rememberToken();
+            $table->softDeletes(); // TAMBAHKAN SOFT DELETE
             $table->timestamps();
 
-            // Index tambahan
+            // Indexes
             $table->index(['is_verified', 'created_at']);
+            $table->index(['role_type', 'guru_type']);
+            $table->index(['email', 'deleted_at']);
         });
     }
 

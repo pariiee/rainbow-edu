@@ -45,13 +45,6 @@ class Siswa extends Model
     {
         return $this->hasOne(SiswaProfile::class);
     }
-<<<<<<< HEAD
-    public function berkas()
-{
-    return $this->hasMany(SiswaBerkas::class, 'id_siswa');
-}
-
-=======
 
     public function questionnaire(): HasOne
     {
@@ -85,5 +78,4 @@ class Siswa extends Model
     {
         return $this->hasMany(Chat::class);
     }
->>>>>>> 3f6701beb8fde725926fdb978bb514112182d203
 }

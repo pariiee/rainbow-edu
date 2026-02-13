@@ -170,6 +170,26 @@
             text-align: center;
         }
 
+        .btn-warning {
+            display: inline-block;
+            padding: 14px 28px;
+            background: #ff9800;
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .btn-warning:hover {
+            background: #f57c00;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 152, 0, 0.3);
+        }
+
         .badge {
             display: inline-block;
             padding: 6px 16px;
@@ -180,9 +200,60 @@
             font-weight: 600;
         }
 
+        .badge-warning {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
         .empty-state {
             text-align: center;
             padding: 40px 20px;
+            color: #666;
+        }
+
+        .progress-card {
+            background: #fff4e5;
+            border: 1px solid #ffb347;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .progress-icon {
+            font-size: 48px;
+            background: white;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .progress-content {
+            flex: 1;
+        }
+
+        .progress-content h3 {
+            color: #c66900;
+            margin-bottom: 8px;
+            font-size: 20px;
+        }
+
+        .progress-content p {
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .small-text {
+            color: #718096;
+            font-size: 12px;
+            margin-top: 10px;
         }
 
         @media (max-width: 768px) {
@@ -193,6 +264,11 @@
 
             .dashboard-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .progress-card {
+                flex-direction: column;
+                text-align: center;
             }
         }
     </style>
@@ -213,6 +289,22 @@
         </form>
     </div>
 
+    <!-- PROGRESS CARD / FORM NOTIFICATION -->
+    @if($hasCompletedLayanan && !$hasCompletedQuestionnaire)
+    <div class="progress-card">
+        <div class="progress-icon">📋</div>
+        <div class="progress-content">
+            <h3>Lengkapi Data Siswa</h3>
+            <p>Bantu guru memahami kebutuhan, minat, dan karakter putra/putri Anda</p>
+            <p style="font-size: 13px; color: #e65100;">Formulir ini penting untuk penyesuaian program pembelajaran</p>
+        </div>
+        <a href="{{ route('ortu.form') }}" class="btn-warning" style="padding: 14px 32px; font-size: 16px;">
+            📝 Isi Form Sekarang
+        </a>
+    </div>
+    @endif
+
+    <!-- MAIN DASHBOARD GRID -->
     <div class="dashboard-grid">
 
         <!-- CARD SISWA -->
@@ -227,19 +319,56 @@
 
             @if($siswa)
                 <div class="info-row">
+                    <span class="info-label">NISN</span>
+                    <span class="info-value">{{ $siswa->nisn ?? '-' }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Tempat, Tgl Lahir</span>
+                    <span class="info-value">
+                        {{ $siswa->tempat_lahir ?? '-' }}, 
+                        {{ $siswa->tanggal_lahir ? \Carbon\Carbon::parse($siswa->tanggal_lahir)->format('d/m/Y') : '-' }}
+                    </span>
+                </div>
+                <div class="info-row">
                     <span class="info-label">Layanan</span>
                     <span class="info-value">
                         <span class="badge">{{ $siswa->layanan ?? '-' }}</span>
                     </span>
                 </div>
+                <div class="info-row">
+                    <span class="info-label">Status Form</span>
+                    <span class="info-value">
+                        @if($hasCompletedQuestionnaire)
+                            <span class="badge" style="background: #e8f5e9; color: #2e7d32;">✓ Sudah diisi</span>
+                        @else
+                            <span class="badge badge-warning">⏳ Belum diisi</span>
+                        @endif
+                    </span>
+                </div>
             @else
                 <div class="empty-state">
-                    Belum ada data siswa
+                    <p style="margin-bottom: 16px;">Belum ada data siswa</p>
+                    @if($hasCompletedLayanan && !$hasCompletedQuestionnaire)
+                        <a href="{{ route('ortu.form') }}" class="btn-primary">
+                            Isi Form Data Siswa
+                        </a>
+                    @endif
                 </div>
+            @endif
+
+            @if($siswa && !$hasCompletedQuestionnaire && $hasCompletedLayanan)
+            <div style="margin-top: 24px;">
+                <a href="{{ route('ortu.form') }}" class="btn-primary" style="width: 100%;">
+                    📝 Isi Form Data Siswa
+                </a>
+                <p class="small-text">
+                    ⏭️ Jika sudah diisi, abaikan pesan ini
+                </p>
+            </div>
             @endif
         </div>
 
-        <!-- CARD GURU (UPDATED) -->
+        <!-- CARD GURU -->
         <div class="card">
             <div class="card-header">
                 <div class="card-icon">👩‍🏫</div>
@@ -250,7 +379,6 @@
             </div>
 
             @if($siswa && $siswa->guru)
-
                 <div class="info-row">
                     <span class="info-label">Divisi</span>
                     <span class="info-value">
@@ -265,7 +393,14 @@
                     </span>
                 </div>
 
-                <div style="margin-top: 24px; display: flex; gap: 10px;">
+                <div class="info-row">
+                    <span class="info-label">Nomor Telepon</span>
+                    <span class="info-value">
+                        {{ $siswa->guru->nomor_telepon ?? '-' }}
+                    </span>
+                </div>
+
+                <div style="margin-top: 24px; display: flex; gap: 10px; flex-wrap: wrap;">
                     <a href="{{ route('ortu.jadwal.index') }}" 
                        class="btn-primary" 
                        style="flex: 1;">
@@ -281,12 +416,69 @@
 
             @else
                 <div class="empty-state">
-                    Menunggu penempatan guru
+                    <p style="margin-bottom: 16px;">Menunggu penempatan guru</p>
+                    <span class="badge badge-warning">Dalam proses</span>
+                </div>
+            @endif
+        </div>
+
+        <!-- CARD PROGRESS / INFORMASI TAMBAHAN -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon">📊</div>
+                <div class="card-title">
+                    <h3>Perkembangan</h3>
+                    <h2>Progress Belajar</h2>
+                </div>
+            </div>
+
+            @if($siswa && $siswa->guru)
+                <div style="text-align: center; padding: 20px 0;">
+                    <p style="color: #666; margin-bottom: 16px;">
+                        Fitur laporan perkembangan akan segera hadir
+                    </p>
+                    <span class="badge">Dalam pengembangan</span>
+                </div>
+            @else
+                <div class="empty-state">
+                    <p style="margin-bottom: 16px;">Belum ada data perkembangan</p>
                 </div>
             @endif
         </div>
 
     </div>
+
+    <!-- INFORMASI TAMBAHAN UNTUK FORM (ALTERNATIVE PLACEMENT) -->
+    @if($hasCompletedLayanan && !$hasCompletedQuestionnaire && !$siswa)
+    <div style="margin-top: 30px;">
+        <div class="card" style="background: #fff4e5; border: 1px solid #ffb347;">
+            <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                <div style="font-size: 32px;">📋</div>
+                <div style="flex: 1;">
+                    <h3 style="color: #c66900; margin-bottom: 4px;">Lengkapi Data Siswa</h3>
+                    <p style="color: #666;">Bantu guru memahami kebutuhan putra/putri Anda</p>
+                </div>
+                <a href="{{ route('ortu.form') }}" class="btn-warning" style="padding: 12px 24px;">
+                    Isi Form
+                </a>
+            </div>
+        </div>
+    </div>
+    @endif
+
 </div>
+
+@if(session('success'))
+<script>
+    alert("{{ session('success') }}");
+</script>
+@endif
+
+@if(session('error'))
+<script>
+    alert("{{ session('error') }}");
+</script>
+@endif
+
 </body>
 </html>
