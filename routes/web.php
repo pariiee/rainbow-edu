@@ -6,6 +6,10 @@ use App\Models\Siswa;
 use App\Http\Controllers\Auth\OtpController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SiswaController;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SiswaBerkasController;
+
+
 use App\Http\Controllers\Ortu\RegistrationFlowController;
 use App\Http\Controllers\Ortu\OrtuHomeController;
 use App\Http\Controllers\Ortu\JadwalOrtuController;
@@ -182,6 +186,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/siswa/create', [SiswaController::class, 'create'])->name('siswa.create');
     Route::post('/siswa', [SiswaController::class, 'store'])->name('siswa.store');
     Route::get('/siswa/{id}', [SiswaController::class, 'show'])->name('siswa.show');
+    Route::delete('/siswa/berkas/{id}', [SiswaBerkasController::class, 'destroy']);
 });
 
 

@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Siswa;
 use App\Models\SiswaProfile;
+use App\Models\SiswaBerkas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class SiswaController extends Controller
 {
@@ -28,10 +30,20 @@ class SiswaController extends Controller
             'status_pendaftaran' => 'nullable|in:Baru,Pindahan',
             'asal_cabang' => 'nullable|string|max:50',
             'layanan' => 'nullable|array',
+
+            // 🔥 TAMBAHAN FILE BERKAS
+            'file_berkas' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'nama_berkas' => 'nullable|string|max:100',
+            'keterangan'  => 'nullable|string',
         ]);
 
         DB::beginTransaction();
+
         try {
+
+            // ===============================
+            // SIMPAN SISWA
+            // ===============================
             $siswa = Siswa::create($request->only([
                 'nama_lengkap',
                 'nama_panggilan',
@@ -46,6 +58,9 @@ class SiswaController extends Controller
                 'layanan'
             ]));
 
+            // ===============================
+            // SIMPAN PROFILE
+            // ===============================
             $siswa->profile()->create($request->only([
                 'gaya_belajar',
                 'minat_khusus',
@@ -70,6 +85,23 @@ class SiswaController extends Controller
                 'consent_konten'
             ]));
 
+            // ===============================
+            // SIMPAN BERKAS (JIKA ADA)
+            // ===============================
+            if ($request->hasFile('file_berkas')) {
+
+                $path = $request->file('file_berkas')
+                    ->store('berkas_siswa', 'public');
+
+                SiswaBerkas::create([
+                    'id_siswa'    => $siswa->id,
+                    'nama_berkas' => $request->nama_berkas ?? 'Berkas Awal',
+                    'file_path'   => $path,
+                    'keterangan'  => $request->keterangan,
+                    'uploaded_at' => now(),
+                ]);
+            }
+
             DB::commit();
 
             Log::info('Siswa baru ditambahkan', [
@@ -82,8 +114,11 @@ class SiswaController extends Controller
                 ->with('success', 'Data siswa berhasil disimpan');
 
         } catch (\Exception $e) {
+
             DB::rollBack();
+
             Log::error('Error create siswa: ' . $e->getMessage());
+
             return back()
                 ->withInput()
                 ->with('error', 'Gagal menyimpan data siswa: ' . $e->getMessage());
@@ -92,7 +127,9 @@ class SiswaController extends Controller
 
     public function show($id)
     {
-        $siswa = Siswa::with('profile')->findOrFail($id);
+        // 🔥 FIX: jangan query 2x
+        $siswa = Siswa::with(['profile', 'berkas'])->findOrFail($id);
+
         return view('siswa.show', compact('siswa'));
     }
 }
