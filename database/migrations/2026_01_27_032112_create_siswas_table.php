@@ -28,13 +28,6 @@ return new class extends Migration
         $table->enum('status_pendaftaran', ['Baru', 'Pindahan'])->default('Baru');
         $table->string('asal_cabang', 50)->nullable();
 
-        $table->set('layanan', [
-            'PAUD Rainbow',
-            'Permata Montessori',
-            'Rainbow Course',
-            'Rainbow Home Learning'
-        ])->nullable();
-
         $table->timestamps();
     });
 }

@@ -6,9 +6,11 @@ use App\Http\Controllers\Auth\OtpController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SiswaController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SiswaBerkasController;
 
-
-
+Route::get('/siswa/{id}/berkas/create', [SiswaBerkasController::class, 'create']);
+Route::post('/siswa/berkas', [SiswaBerkasController::class, 'store']);
+Route::delete('/siswa/berkas/{id}', [SiswaBerkasController::class, 'destroy']);
 
 Route::get('/', function () {
     return view('welcome');

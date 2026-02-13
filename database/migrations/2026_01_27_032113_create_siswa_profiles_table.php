@@ -21,12 +21,7 @@ return new class extends Migration
         $table->enum('gaya_belajar', ['Visual', 'Auditori', 'Kinestetik'])->nullable();
         $table->json('minat_khusus')->nullable();
 
-        $table->set('temperamen', [
-            'Berani/Ekspresif',
-            'Observatif/Pendiam',
-            'Mudah Beradaptasi',
-            'Butuh Waktu Adaptasi'
-        ])->nullable();
+        $table->text('temperamen')->nullable();
 
         $table->text('trigger_emosi')->nullable();
         $table->text('strategi_menenangkan')->nullable();
@@ -53,14 +48,8 @@ return new class extends Migration
         $table->string('kontak_darurat', 100)->nullable();
 
         // MARKETING
-        $table->set('sumber_informasi', [
-            'WA Broadcast',
-            'Instagram',
-            'Facebook',
-            'Papan Nama',
-            'Rekomendasi Teman',
-            'Lainnya'
-        ])->nullable();
+        $table->text('sumber_informasi')->nullable();
+
 
         $table->enum('consent_konten', ['Ya', 'Tidak'])->default('Tidak');
 

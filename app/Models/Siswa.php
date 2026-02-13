@@ -26,4 +26,9 @@ class Siswa extends Model
     {
         return $this->hasOne(SiswaProfile::class);
     }
+    public function berkas()
+{
+    return $this->hasMany(SiswaBerkas::class, 'id_siswa');
+}
+
 }
