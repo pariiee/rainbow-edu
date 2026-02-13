@@ -28,13 +28,6 @@ return new class extends Migration
         $table->enum('status_pendaftaran', ['Baru', 'Pindahan'])->default('Baru');
         $table->string('asal_cabang', 50)->nullable();
 
-        $table->set('layanan', [
-            'PAUD Rainbow',
-            'Permata Montessori',
-            'Rainbow Course',
-            'Rainbow Home Learning'
-        ])->nullable();
-
         $table->timestamps();
     });
 }
@@ -45,6 +38,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('siswas');
+        Schema::dropIfExists('siswa');
     }
 };
