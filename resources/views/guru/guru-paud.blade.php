@@ -636,22 +636,14 @@
             </div>
         </div>
 
-        <!-- Stats Grid -->
+        <!-- Stats Grid - UPDATED -->
         <div class="stats-grid">
             <div class="stat-item">
                 <div class="stat-icon">👶</div>
                 <div class="stat-info">
-                    <h3>Siswa PAUD Rainbow</h3>
-                    <div class="number">{{ $siswaPaud ?? $siswaList->where('layanan', 'PAUD Rainbow')->count() ?? 0 }}</div>
-                    <div class="sub">Program reguler</div>
-                </div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-icon">🏫</div>
-                <div class="stat-info">
-                    <h3>Siswa Permata Montessori</h3>
-                    <div class="number">{{ $siswaMontessori ?? $siswaList->where('layanan', 'Permata Montessori')->count() ?? 0 }}</div>
-                    <div class="sub">Program montessori</div>
+                    <h3>Total Siswa PAUD</h3>
+                    <div class="number">{{ $totalSiswa ?? 0 }}</div>
+                    <div class="sub">Semua program PAUD</div>
                 </div>
             </div>
             <div class="stat-item">
@@ -663,10 +655,18 @@
                 </div>
             </div>
             <div class="stat-item">
+                <div class="stat-icon">✅</div>
+                <div class="stat-info">
+                    <h3>Siswa Aktif</h3>
+                    <div class="number">{{ $siswaAktif ?? 0 }}</div>
+                    <div class="sub">Status active</div>
+                </div>
+            </div>
+            <div class="stat-item">
                 <div class="stat-icon">⏳</div>
                 <div class="stat-info">
-                    <h3>Menunggu Konfirmasi</h3>
-                    <div class="number">{{ $pendingKonfirmasi ?? $siswaList->where('status_assign', 'pending')->count() ?? 0 }}</div>
+                    <h3>Menunggu</h3>
+                    <div class="number">{{ $siswaPending ?? 0 }}</div>
                     <div class="sub">Perlu direspon</div>
                 </div>
             </div>
@@ -690,7 +690,7 @@
                 @if(isset($siswaList) && $siswaList->count() > 0)
                     <div class="siswa-grid">
                         @foreach($siswaList as $siswa)
-                        <div class="siswa-card" data-status="{{ $siswa->status_assign }}">
+                        <div class="siswa-card" data-status="{{ $siswa->status_assign ?? 'pending' }}">
                             <div class="siswa-header">
                                 <div class="siswa-avatar">
                                     {{ strtoupper(substr($siswa->nama_lengkap, 0, 1)) }}
@@ -709,17 +709,23 @@
                                 </div>
                                 <div class="detail-row">
                                     <span>🎯</span> Layanan: 
-                                    <span style="color: #667eea; font-weight: 500;">{{ $siswa->layanan }}</span>
+                                    <span style="color: #667eea; font-weight: 500;">
+                                        @if(isset($siswa->layanan) && $siswa->layanan == 'PAUD')
+                                            PAUD
+                                        @else
+                                            {{ $siswa->layanan ?? 'PAUD' }}
+                                        @endif
+                                    </span>
                                 </div>
                                 <div class="detail-row">
                                     <span>📊</span> Status: 
-                                    @if($siswa->status_assign == 'active')
+                                    @if(isset($siswa->status_assign) && $siswa->status_assign == 'active')
                                         <span class="status-badge status-active">✅ Aktif</span>
                                     @else
                                         <span class="status-badge status-pending">⏳ Pending</span>
                                     @endif
                                 </div>
-                                @if($siswa->questionnaire && !$siswa->questionnaire->is_skipped)
+                                @if(isset($siswa->questionnaire) && $siswa->questionnaire && !$siswa->questionnaire->is_skipped)
                                 <div class="detail-row">
                                     <span>📝</span> Questionnaire: 
                                     <span style="color: #38a169;">✓ Terisi</span>
@@ -727,7 +733,7 @@
                                 @endif
                             </div>
 
-                            <!-- Action Buttons - Updated sesuai permintaan -->
+                            <!-- Action Buttons -->
                             <div class="action-buttons">
                                 <a href="{{ route('guru.jadwal.siswa', $siswa->id) }}" class="btn-action">
                                     📅 Atur Jadwal
@@ -770,11 +776,11 @@
                             <div class="label">Total Siswa</div>
                         </div>
                         <div class="profile-stat">
-                            <div class="value">{{ $siswaAktif ?? $siswaList->where('status_assign', 'active')->count() ?? 0 }}</div>
+                            <div class="value">{{ $siswaAktif ?? 0 }}</div>
                             <div class="label">Aktif</div>
                         </div>
                         <div class="profile-stat">
-                            <div class="value">{{ $siswaPending ?? $siswaList->where('status_assign', 'pending')->count() ?? 0 }}</div>
+                            <div class="value">{{ $siswaPending ?? 0 }}</div>
                             <div class="label">Pending</div>
                         </div>
                     </div>
@@ -798,14 +804,14 @@
                             <div class="schedule-time">08:00</div>
                             <div class="schedule-info">
                                 <div class="schedule-title">Bermain Sambil Belajar</div>
-                                <div class="schedule-sub">Budi - PAUD Rainbow</div>
+                                <div class="schedule-sub">Budi - PAUD</div>
                             </div>
                         </div>
                         <div class="schedule-item">
                             <div class="schedule-time">10:00</div>
                             <div class="schedule-info">
                                 <div class="schedule-title">Sensory Play</div>
-                                <div class="schedule-sub">Ani - Permata Montessori</div>
+                                <div class="schedule-sub">Ani - PAUD</div>
                             </div>
                         </div>
                     @else
