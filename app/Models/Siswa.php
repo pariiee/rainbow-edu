@@ -6,11 +6,13 @@ use App\Models\User;
 use App\Models\Jadwal;
 use App\Models\Chat;
 use App\Models\SiswaProfile;
+use App\Models\SiswaBerkas;
 use App\Models\SiswaQuestionnaire;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+
 
 class Siswa extends Model
 {
@@ -45,6 +47,12 @@ class Siswa extends Model
     {
         return $this->hasOne(SiswaProfile::class);
     }
+
+    public function berkas(): HasMany
+{
+    return $this->hasMany(SiswaBerkas::class, 'id_siswa');
+}
+
 
     public function questionnaire(): HasOne
     {
