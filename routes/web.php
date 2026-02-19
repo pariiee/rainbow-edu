@@ -270,24 +270,35 @@ Route::middleware(['auth'])->group(function () {
 |--------------------------------------------------------------------------
 | CHAT ROUTES - REALTIME
 |--------------------------------------------------------------------------
+| PENTING: Route spesifik (tanpa parameter) harus di atas route
+| dengan wildcard parameter {siswaId} agar tidak salah tangkap.
 */
 
 Route::middleware(['auth'])->group(function () {
-    // Chat utama - parameter opsional guruId
-    Route::get('/chat/{siswaId}/{guruId?}', [ChatController::class, 'show'])->name('chat.show');
-    
-    // Send message
+
+    // ── Static routes dulu (SEBELUM wildcard) ──────────────────────────
+
+    // Polling pesan baru (tanpa reload halaman)
+    Route::get('/chat/poll', [ChatController::class, 'poll'])->name('chat.poll');
+
+    // Kirim pesan
     Route::post('/chat/send', [ChatController::class, 'send'])->name('chat.send');
-    
-    // Get unread count
+
+    // Jumlah pesan belum dibaca
     Route::get('/chat/unread/count', [ChatController::class, 'unreadCount'])->name('chat.unread');
-    
-    // Mark messages as read
+
+    // Tandai pesan sebagai sudah dibaca
     Route::post('/chat/mark-read', [ChatController::class, 'markAsRead'])->name('chat.markread');
-    
-    // Get chat history (for AJAX)
+
+    // ── Wildcard routes setelah ini ────────────────────────────────────
+
+    // Chat history (AJAX)
     Route::get('/chat/history/{siswaId}/{guruId}', [ChatController::class, 'history'])->name('chat.history');
+
+    // Chat utama — parameter guruId opsional
+    Route::get('/chat/{siswaId}/{guruId?}', [ChatController::class, 'show'])->name('chat.show');
 });
+
 
 
 /*
