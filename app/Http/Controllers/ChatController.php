@@ -77,12 +77,12 @@ class ChatController extends Controller
     public function send(Request $request)
     {
         $request->validate([
-            'siswa_id' => 'required|exists:siswa,id',
+            'siswa_id'    => 'required|exists:siswa,id',
             'penerima_id' => 'required|exists:users,id',
-            'pesan' => 'required|string|max:1000'
+            'pesan'       => 'required|string|max:1000'
         ]);
 
-        $user = Auth::user();
+        $user  = Auth::user();
         $siswa = Siswa::findOrFail($request->siswa_id);
 
         // Validasi akses
@@ -95,14 +95,13 @@ class ChatController extends Controller
         }
 
         $chat = Chat::create([
-            'siswa_id' => $request->siswa_id,
+            'siswa_id'    => $request->siswa_id,
             'pengirim_id' => $user->id,
             'penerima_id' => $request->penerima_id,
-            'pesan' => $request->pesan,
-            'is_read' => false
+            'pesan'       => $request->pesan,
+            'is_read'     => false,
         ]);
 
-        // Load relations
         $chat->load(['pengirim', 'penerima']);
 
         // Broadcast event (nanti implementasi dengan Pusher)
@@ -111,11 +110,69 @@ class ChatController extends Controller
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'chat' => $chat
+                'chat'    => $chat
             ]);
         }
 
         return back()->with('success', 'Pesan terkirim');
+    }
+
+    /**
+     * Poll for new messages after a given ID.
+     * Dipanggil oleh front-end setiap beberapa detik untuk mendapatkan
+     * pesan baru tanpa me-reload seluruh halaman (menghindari kedip).
+     *
+     * GET /chat/poll?siswa_id=1&penerima_id=2&last_id=50
+     */
+    public function poll(Request $request)
+    {
+        $request->validate([
+            'siswa_id'    => 'required|exists:siswa,id',
+            'penerima_id' => 'required|exists:users,id',
+            'last_id'     => 'required|integer|min:0',
+        ]);
+
+        $user = Auth::user();
+
+        // Pastikan user boleh mengakses percakapan ini
+        $siswa = Siswa::findOrFail($request->siswa_id);
+
+        if ($user->role_type === 'orang_tua' && $siswa->orang_tua_id !== $user->id) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        if ($user->role_type === 'guru' && $siswa->guru_id !== $user->id) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        // Ambil hanya pesan baru (id > last_id) dalam percakapan ini
+        $newChats = Chat::where('siswa_id', $request->siswa_id)
+            ->where(function ($q) use ($user, $request) {
+                $q->where(function ($q2) use ($user, $request) {
+                    $q2->where('pengirim_id', $user->id)
+                       ->where('penerima_id', $request->penerima_id);
+                })->orWhere(function ($q2) use ($user, $request) {
+                    $q2->where('pengirim_id', $request->penerima_id)
+                       ->where('penerima_id', $user->id);
+                });
+            })
+            ->where('id', '>', $request->last_id)
+            ->orderBy('id', 'asc')
+            ->get();
+
+        // Tandai pesan yang diterima sebagai sudah dibaca
+        if ($newChats->isNotEmpty()) {
+            Chat::where('siswa_id', $request->siswa_id)
+                ->where('pengirim_id', $request->penerima_id)
+                ->where('penerima_id', $user->id)
+                ->where('is_read', false)
+                ->update([
+                    'is_read' => true,
+                    'read_at' => now(),
+                ]);
+        }
+
+        return response()->json($newChats);
     }
 
     /**
@@ -138,7 +195,7 @@ class ChatController extends Controller
     public function markAsRead(Request $request)
     {
         $request->validate([
-            'siswa_id' => 'required|exists:siswa,id',
+            'siswa_id'    => 'required|exists:siswa,id',
             'pengirim_id' => 'required|exists:users,id'
         ]);
 
