@@ -19,12 +19,19 @@ class Jadwal extends Model
         'catatan',
         'status',
         'feedback_ortu',
-        'feedback_guru'
+        'feedback_guru',
+        'is_pengajuan_pengganti',
+        'tanggal_pengganti',
+        'waktu_pengganti',
+        'alasan_pengganti'
     ];
 
     protected $casts = [
         'tanggal' => 'date',
         'waktu' => 'datetime',
+        'tanggal_pengganti' => 'date',
+        'waktu_pengganti' => 'datetime',
+        'is_pengajuan_pengganti' => 'boolean',
     ];
 
     public function guru(): BelongsTo

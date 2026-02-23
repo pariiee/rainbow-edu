@@ -32,6 +32,8 @@ class JadwalOrtuController extends Controller
         $jadwalHariIni = $jadwals->where('tanggal', now()->format('Y-m-d'));
         $jadwalMendatang = $jadwals->where('tanggal', '>', now()->format('Y-m-d'));
 
+        $siswa = Siswa::where('orang_tua_id', $user->id)->first();
+
         return view('ortu.jadwal-index', compact(
             'jadwals',
             'jadwalPending',
@@ -39,7 +41,8 @@ class JadwalOrtuController extends Controller
             'jadwalSelesai',
             'jadwalDibatalkan',
             'jadwalHariIni',
-            'jadwalMendatang'
+            'jadwalMendatang',
+            'siswa'
         ));
     }
 
@@ -52,7 +55,9 @@ class JadwalOrtuController extends Controller
                        ->where('orang_tua_id', Auth::id())
                        ->findOrFail($id);
 
-        return view('ortu.jadwal-show', compact('jadwal'));
+        $siswa = Siswa::where('orang_tua_id', Auth::id())->first();
+
+        return view('ortu.jadwal-show', compact('jadwal', 'siswa'));
     }
 
     /**
@@ -108,6 +113,40 @@ class JadwalOrtuController extends Controller
 
         return redirect()->route('ortu.jadwal.index')
             ->with('success', 'Jadwal telah dibatalkan.');
+    }
+
+    /**
+     * Propose a replacement schedule
+     */
+    public function proposeReplacement(Request $request, $id)
+    {
+        $jadwal = Jadwal::where('orang_tua_id', Auth::id())
+                       ->where('status', 'pending')
+                       ->findOrFail($id);
+
+        $request->validate([
+            'tanggal_pengganti' => 'required|date|after_or_equal:today',
+            'waktu_pengganti' => 'required',
+            'alasan_pengganti' => 'required|string|max:500'
+        ]);
+
+        $jadwal->is_pengajuan_pengganti = true;
+        $jadwal->tanggal_pengganti = $request->tanggal_pengganti;
+        $jadwal->waktu_pengganti = $request->waktu_pengganti;
+        $jadwal->alasan_pengganti = $request->alasan_pengganti;
+        $jadwal->status = 'pending'; // remain pending
+        $jadwal->save();
+
+        Log::info('Pengajuan jadwal pengganti oleh orang tua', [
+            'jadwal_id' => $jadwal->id,
+            'ortu_id' => Auth::id(),
+            'tanggal_pengganti' => $request->tanggal_pengganti,
+            'waktu_pengganti' => $request->waktu_pengganti,
+            'alasan' => $request->alasan_pengganti
+        ]);
+
+        return redirect()->route('ortu.jadwal.show', $id)
+            ->with('success', 'Pengajuan jadwal pengganti telah dikirim dan menunggu persetujuan guru.');
     }
 
     /**

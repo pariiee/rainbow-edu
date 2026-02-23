@@ -173,6 +173,51 @@ class JadwalController extends Controller
     }
 
     /**
+     * Respond to replacement schedule proposal
+     * URL: /guru/jadwal/{id}/respond-replacement
+     */
+    public function respondReplacement(Request $request, $id)
+    {
+        $jadwal = Jadwal::findOrFail($id);
+        
+        if ($jadwal->guru_id !== Auth::id()) {
+            abort(403, 'Anda tidak memiliki akses ke jadwal ini.');
+        }
+
+        $request->validate([
+            'action' => 'required|in:approve,reject',
+            'feedback' => 'nullable|string'
+        ]);
+
+        if (!$jadwal->is_pengajuan_pengganti) {
+            return back()->with('error', 'Tidak ada pengajuan penggantian untuk jadwal ini.');
+        }
+
+        if ($request->action === 'approve') {
+            $jadwal->tanggal = $jadwal->tanggal_pengganti;
+            $jadwal->waktu = $jadwal->waktu_pengganti;
+            $jadwal->status = 'disetujui';
+            $jadwal->feedback_guru = $request->feedback ?? 'Pengajuan jadwal pengganti disetujui.';
+            $message = 'Jadwal pengganti berhasil disetujui.';
+        } else {
+            $jadwal->status = 'dibatalkan';
+            $jadwal->feedback_guru = $request->feedback ?? 'Pengajuan jadwal pengganti ditolak.';
+            $message = 'Jadwal pengganti ditolak, jadwal dibatalkan.';
+        }
+
+        // Reset the replacement fields
+        $jadwal->is_pengajuan_pengganti = false;
+        $jadwal->tanggal_pengganti = null;
+        $jadwal->waktu_pengganti = null;
+        $jadwal->alasan_pengganti = null;
+        
+        $jadwal->save();
+
+        return redirect()->route('guru.jadwal.detail', $id)
+            ->with('success', $message);
+    }
+
+    /**
      * Delete schedule
      * URL: /guru/jadwal/{id}
      */

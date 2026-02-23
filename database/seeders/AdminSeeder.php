@@ -64,6 +64,26 @@ class AdminSeeder extends Seeder
         }
         $this->command->info("✅ Guru PAUD: guru.paud@rainbow.edu / password123");
 
+        // ============ 7. BUAT ORANG TUA (1 AKUN) ============
+$orangTua = User::firstOrCreate(
+    ['email' => 'ortu@rainbow.edu'],
+    [
+        'name' => 'Bapak Andi Prasetyo',
+        'email' => 'ortu@rainbow.edu',
+        'password' => Hash::make('password123'),
+        'role_type' => 'orang_tua',
+        'guru_type' => null,
+        'nama_anak' => 'Raisa Prasetyo',
+        'is_verified' => true,
+        'verified_at' => now(),
+    ]
+);
+
+if (!$orangTua->hasRole('orang_tua')) {
+    $orangTua->assignRole('orang_tua');
+}
+$this->command->info("✅ Orang Tua: ortu@rainbow.edu / password123");
+
         // ============ 4. BUAT GURU LEARN (1 AKUN) ============
         $guruLearn = User::firstOrCreate(
             ['email' => 'guru.learn@rainbow.edu'],

@@ -8,6 +8,20 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
+        /* ── DEKORASI AWAN BACKGROUND ── */
+        .clouds { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+        .cloud { position: absolute; opacity: 0.55; animation: drift linear infinite; }
+        .cloud svg path { fill: white; }
+        .cloud-1  { top: 4%;  left: -120px; width: 220px; animation-duration: 60s; animation-delay: 0s; }
+        .cloud-2  { top: 12%; left: -80px;  width: 140px; animation-duration: 75s; animation-delay: -20s; opacity: 0.35; }
+        .cloud-3  { top: 28%; left: -160px; width: 180px; animation-duration: 55s; animation-delay: -10s; }
+        .cloud-4  { top: 55%; left: -100px; width: 160px; animation-duration: 80s; animation-delay: -35s; opacity: 0.3; }
+        .cloud-5  { top: 72%; left: -140px; width: 200px; animation-duration: 65s; animation-delay: -5s; }
+        .cloud-6  { top: 88%; left: -90px;  width: 130px; animation-duration: 70s; animation-delay: -45s; opacity: 0.35; }
+        @keyframes drift { from { transform: translateX(0); } to { transform: translateX(calc(100vw + 300px)); } }
+        .cloud-1 svg path { fill: #ffd6d6; } .cloud-2 svg path { fill: #ffe4cc; } .cloud-3 svg path { fill: #d6f5d6; }
+        .cloud-4 svg path { fill: #cce5ff; } .cloud-5 svg path { fill: #e0d6ff; } .cloud-6 svg path { fill: #ffd6f5; }
+
         body {
             font-family: 'Nunito', sans-serif;
             background: #f0f2f5;
@@ -27,6 +41,8 @@
             overflow: hidden;
             display: flex;
             box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+            position: relative;
+            z-index: 1;
         }
 
         /* ══ SIDEBAR ══ */
@@ -351,8 +367,20 @@
             .btn-back { display: flex !important; }
         }
     </style>
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
 </head>
 <body>
+
+<!-- Dekorasi awan melayang -->
+<div class="clouds">
+    <div class="cloud cloud-1"><svg viewBox="0 0 200 80" xmlns="http://www.w3.org/2000/svg"><path d="M30,60 Q10,60 10,45 Q10,30 25,28 Q22,10 40,10 Q52,10 58,20 Q65,8 80,8 Q100,8 105,25 Q118,20 130,28 Q145,25 150,38 Q160,38 160,50 Q160,62 148,62 Z"/></svg></div>
+    <div class="cloud cloud-2"><svg viewBox="0 0 140 56" xmlns="http://www.w3.org/2000/svg"><path d="M20,42 Q6,42 6,30 Q6,18 18,17 Q15,4 30,4 Q40,4 45,12 Q52,3 65,3 Q82,3 86,17 Q96,14 104,22 Q114,20 116,30 Q122,30 122,40 Q122,48 112,48 Z"/></svg></div>
+    <div class="cloud cloud-3"><svg viewBox="0 0 180 70" xmlns="http://www.w3.org/2000/svg"><path d="M28,54 Q8,54 8,40 Q8,26 22,24 Q18,8 36,8 Q48,8 54,18 Q62,6 78,6 Q100,6 104,22 Q116,18 126,26 Q140,22 144,36 Q154,36 154,48 Q154,58 142,60 Z"/></svg></div>
+    <div class="cloud cloud-4"><svg viewBox="0 0 160 64" xmlns="http://www.w3.org/2000/svg"><path d="M24,50 Q6,50 6,36 Q6,22 20,20 Q16,6 34,6 Q46,6 52,16 Q58,4 74,4 Q96,4 100,20 Q110,16 120,24 Q132,20 136,34 Q146,34 146,44 Q146,56 134,56 Z"/></svg></div>
+    <div class="cloud cloud-5"><svg viewBox="0 0 200 76" xmlns="http://www.w3.org/2000/svg"><path d="M32,58 Q10,58 10,44 Q10,30 24,28 Q20,10 40,10 Q54,10 60,20 Q68,8 84,8 Q108,8 112,26 Q122,22 134,30 Q148,26 152,40 Q164,40 164,52 Q164,62 150,64 Z"/></svg></div>
+    <div class="cloud cloud-6"><svg viewBox="0 0 130 52" xmlns="http://www.w3.org/2000/svg"><path d="M18,40 Q4,40 4,28 Q4,16 16,15 Q12,2 28,2 Q38,2 44,10 Q50,2 62,2 Q80,2 84,16 Q94,12 100,20 Q110,18 112,28 Q118,28 118,38 Q118,46 108,46 Z"/></svg></div>
+</div>
+
 <div class="app">
 
     {{-- ════ SIDEBAR ════ --}}
@@ -360,14 +388,14 @@
     <aside class="sidebar">
         <div class="sidebar-top">
             <div class="sidebar-brand">
-                <div class="brand-icon">🌈</div>
+                <div class="brand-icon"><i class="ph-duotone ph-rainbow" style="color: #ec4899;"></i></div>
                 <div>
                     <div class="brand-title">Rainbow Edu</div>
                     <div class="brand-sub">Pesan & Konsultasi</div>
                 </div>
             </div>
             <div class="search-box">
-                <span class="search-icon">🔍</span>
+                <span class="search-icon"><i class="ph-duotone ph-magnifying-glass"></i></span>
                 <input type="text" id="searchGuru" placeholder="Cari guru...">
             </div>
         </div>
@@ -442,8 +470,8 @@
                         @endif
                     </div>
                 </div>
-                <div class="siswa-badge">👦 {{ $siswa->nama_lengkap }}</div>
-                <button class="header-action" title="Cari">🔍</button>
+                <div class="siswa-badge"><i class="ph-duotone ph-user-focus"></i> {{ $siswa->nama_lengkap }}</div>
+                <button class="header-action" title="Cari"><i class="ph-duotone ph-magnifying-glass"></i></button>
                 <button class="header-action" title="Opsi">&#8230;</button>
             </header>
 
@@ -494,7 +522,7 @@
                     </div>
                 @empty
                     <div class="no-chat" id="empty-state">
-                        <div class="no-chat-icon">💬</div>
+                        <div class="no-chat-icon"><i class="ph-duotone ph-chat-teardrop-dots"></i></div>
                         <h3>Mulai Percakapan</h3>
                         <p>Kirim pesan pertama kepada {{ $lawanBicara->name }}</p>
                     </div>
@@ -507,7 +535,7 @@
                     @csrf
                     <input type="hidden" name="siswa_id"    value="{{ $siswa->id }}">
                     <input type="hidden" name="penerima_id" value="{{ $penerimaId }}">
-                    <button type="button" class="input-side" title="Emoji">😊</button>
+                    <button type="button" class="input-side" title="Emoji"><i class="ph-duotone ph-smiley"></i></button>
                     <div class="input-wrap">
                         <input type="text"
                                name="pesan"
@@ -516,7 +544,7 @@
                                autocomplete="off"
                                required>
                     </div>
-                    <button type="button" class="input-side" title="Lampiran">📎</button>
+                    <button type="button" class="input-side" title="Lampiran"><i class="ph-duotone ph-paperclip"></i></button>
                     <button type="submit" class="send-btn" id="send-btn">
                         <svg viewBox="0 0 24 24"><path d="M2 21L23 12 2 3v7l15 2-15 2z"/></svg>
                     </button>
@@ -539,7 +567,7 @@
 
         @else
             <div class="no-chat" style="flex:1">
-                <div class="no-chat-icon">💬</div>
+                <div class="no-chat-icon"><i class="ph-duotone ph-chat-teardrop-dots"></i></div>
                 <h3>Rainbow Edu Chat</h3>
                 <p>Pilih guru dari daftar untuk memulai percakapan.</p>
             </div>

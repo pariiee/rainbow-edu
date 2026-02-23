@@ -202,6 +202,9 @@ Route::prefix('guru')->middleware(['auth', 'role:guru'])->group(function () {
     // Update status jadwal
     Route::put('/jadwal/{id}/status', [JadwalController::class, 'updateStatus'])->name('guru.jadwal.status');
     
+    // Respond to replacement proposal
+    Route::post('/jadwal/{id}/respond-replacement', [JadwalController::class, 'respondReplacement'])->name('guru.jadwal.respondReplacement');
+    
     // Delete jadwal
     Route::delete('/jadwal/{id}', [JadwalController::class, 'destroy'])->name('guru.jadwal.destroy');
 });
@@ -242,6 +245,7 @@ Route::prefix('orangtua')->middleware(['auth', 'role:orang_tua'])->group(functio
     Route::get('/jadwal/{id}', [JadwalOrtuController::class, 'show'])->name('ortu.jadwal.show');
     Route::post('/jadwal/{id}/approve', [JadwalOrtuController::class, 'approve'])->name('ortu.jadwal.approve');
     Route::post('/jadwal/{id}/reject', [JadwalOrtuController::class, 'reject'])->name('ortu.jadwal.reject');
+    Route::post('/jadwal/{id}/propose-replacement', [JadwalOrtuController::class, 'proposeReplacement'])->name('ortu.jadwal.proposeReplacement');
 
     // ============ CHAT DARI ORANG TUA ============
     Route::get('/chat/{siswaId}', [ChatController::class, 'show'])->name('ortu.chat.show');

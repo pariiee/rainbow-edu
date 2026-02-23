@@ -80,33 +80,40 @@
     <!-- LOGO -->
     <div class="sidebar-header">
         <h2><i class="ph-duotone ph-graduation-cap"></i> Rainbow Edu</h2>
-        <p>Dashboard Orang Tua</p>
+        <p>Dashboard Guru</p>
     </div>
 
     <!-- MENU -->
     <nav class="sidebar-menu">
 
-        <a href="{{ route('orangtua.home') }}"
-           class="menu-item {{ request()->routeIs('orangtua.home') ? 'active' : '' }}"> 
+        @php
+            // Menentukan rute dashboard utama berdasarkan tipe guru
+            $dashboardRoute = 'dashboard';
+            $isActive = false;
+
+            if (auth()->check()) {
+                if (auth()->user()->guru_type === 'PAUD') {
+                    $dashboardRoute = route('guru.paud.home');
+                    $isActive = request()->routeIs('guru.paud.home');
+                } elseif (auth()->user()->guru_type === 'Learn kursus') {
+                    $dashboardRoute = route('guru.learn.home');
+                    $isActive = request()->routeIs('guru.learn.home');
+                } elseif (auth()->user()->guru_type === 'Homelearning kursus private') {
+                    $dashboardRoute = route('guru.homelearning.home');
+                    $isActive = request()->routeIs('guru.homelearning.home');
+                }
+            }
+        @endphp
+
+        <a href="{{ $dashboardRoute }}"
+           class="menu-item {{ $isActive ? 'active' : '' }}"> 
             <i class="ph-duotone ph-house"></i> Dashboard
         </a>
 
-        <a href="{{ route('ortu.form') }}"
-           class="menu-item {{ request()->routeIs('ortu.form') ? 'active' : '' }}">
-            <i class="ph-duotone ph-notepad"></i> Data Siswa
+        <a href="{{ route('guru.jadwal.index') }}"
+           class="menu-item {{ request()->routeIs('guru.jadwal.*') ? 'active' : '' }}">
+            <i class="ph-duotone ph-calendar-blank"></i> Jadwal Mengajar
         </a>
-
-        <a href="{{ route('ortu.jadwal.index') }}"
-           class="menu-item {{ request()->routeIs('ortu.jadwal.*') ? 'active' : '' }}">
-            <i class="ph-duotone ph-calendar-blank"></i> Jadwal Belajar
-        </a>
-
-        @if(isset($siswa))
-        <a href="{{ route('chat.show', $siswa->id) }}"
-           class="menu-item">
-            <i class="ph-duotone ph-chat-teardrop-dots"></i> Chat Guru
-        </a>
-        @endif
 
         <div class="menu-divider"></div>
 

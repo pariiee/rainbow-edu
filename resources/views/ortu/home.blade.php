@@ -472,6 +472,7 @@
             .header { flex-direction: column; text-align: center; }
         }
     </style>
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
 </head>
 <body>
 
@@ -522,7 +523,7 @@
         {{-- HEADER --}}
         <div class="header">
             <div class="welcome">
-                <h1>Selamat Datang, <span class="name">{{ auth()->user()->name }}</span> 👋</h1>
+                <h1>Selamat Datang, <span class="name">{{ auth()->user()->name }}</span> <i class="ph-duotone ph-hand-waving"></i></h1>
                 <p>Orang Tua dari <strong>{{ $siswa->nama_lengkap ?? 'Belum diisi' }}</strong></p>
             </div>
             <form method="POST" action="{{ route('logout') }}">
@@ -534,14 +535,14 @@
         {{-- NOTIFIKASI FORM --}}
         @if($hasCompletedLayanan && !$hasCompletedQuestionnaire)
         <div class="notif-banner">
-            <div class="notif-icon">📋</div>
+            <div class="notif-icon"><i class="ph-duotone ph-clipboard-text"></i></div>
             <div class="notif-body">
                 <h3>Lengkapi Data Siswa</h3>
                 <p>Bantu guru memahami kebutuhan, minat, dan karakter putra/putri Anda.</p>
-                <small>⚠️ Formulir ini penting untuk penyesuaian program pembelajaran</small>
+                <small><i class="ph-duotone ph-warning-circle" style="color: #f59e0b;"></i> Formulir ini penting untuk penyesuaian program pembelajaran</small>
             </div>
             <a href="{{ route('ortu.form') }}" class="btn-notif">
-                📝 Isi Form Sekarang
+                <i class="ph-duotone ph-notepad"></i> Isi Form Sekarang
             </a>
         </div>
         @endif
@@ -554,7 +555,7 @@
                 <div class="card-top-stripe stripe-red"></div>
                 <div class="card-body">
                     <div class="card-header">
-                        <div class="card-icon icon-red">👤</div>
+                        <div class="card-icon icon-red"><i class="ph-duotone ph-user"></i></div>
                         <div class="card-title">
                             <small>Data Siswa</small>
                             <h2>{{ $siswa->nama_lengkap ?? 'Belum diisi' }}</h2>
@@ -585,20 +586,20 @@
                                 @if($hasCompletedQuestionnaire)
                                     <span class="badge badge-green">✓ Sudah diisi</span>
                                 @else
-                                    <span class="badge badge-amber">⏳ Belum diisi</span>
+                                    <span class="badge badge-amber"><i class="ph-duotone ph-hourglass-medium" style="color: #d97706;"></i> Belum diisi</span>
                                 @endif
                             </span>
                         </div>
 
                         @if(!$hasCompletedQuestionnaire && $hasCompletedLayanan)
                             <a href="{{ route('ortu.form') }}" class="btn-block">
-                                📝 Isi Form Data Siswa
+                                <i class="ph-duotone ph-notepad"></i> Isi Form Data Siswa
                             </a>
                             <p class="note-text">Abaikan jika sudah pernah mengisi</p>
                         @endif
                     @else
                         <div class="empty-state">
-                            <div class="emo">🗂️</div>
+                            <div class="emo"><i class="ph-duotone ph-folders"></i></div>
                             <p>Belum ada data siswa</p>
                             @if($hasCompletedLayanan && !$hasCompletedQuestionnaire)
                                 <a href="{{ route('ortu.form') }}" class="btn-block">Isi Form</a>
@@ -613,7 +614,7 @@
                 <div class="card-top-stripe stripe-green"></div>
                 <div class="card-body">
                     <div class="card-header">
-                        <div class="card-icon icon-green">👩‍🏫</div>
+                        <div class="card-icon icon-green"><i class="ph-duotone ph-chalkboard-teacher"></i></div>
                         <div class="card-title">
                             <small>Guru Pendamping</small>
                             <h2>{{ $siswa->guru->name ?? 'Belum ditentukan' }}</h2>
@@ -635,12 +636,12 @@
                         </div>
 
                         <div class="btn-row">
-                            <a href="{{ route('ortu.jadwal.index') }}" class="btn-primary">📅 Lihat Jadwal</a>
-                            <a href="{{ route('chat.show', $siswa->id) }}" class="btn-secondary">💬 Chat Guru</a>
+                            <a href="{{ route('ortu.jadwal.index') }}" class="btn-primary"><i class="ph-duotone ph-calendar-blank"></i> Lihat Jadwal</a>
+                            <a href="{{ route('chat.show', $siswa->id) }}" class="btn-secondary"><i class="ph-duotone ph-chat-teardrop-dots"></i> Chat Guru</a>
                         </div>
                     @else
                         <div class="empty-state">
-                            <div class="emo">⏳</div>
+                            <div class="emo"><i class="ph-duotone ph-hourglass-medium" style="color: #d97706;"></i></div>
                             <p>Menunggu penempatan guru</p>
                             <span class="badge badge-amber" style="margin-top:12px;">Dalam proses</span>
                         </div>
@@ -653,7 +654,7 @@
                 <div class="card-top-stripe stripe-violet"></div>
                 <div class="card-body">
                     <div class="card-header">
-                        <div class="card-icon icon-violet">📊</div>
+                        <div class="card-icon icon-violet"><i class="ph-duotone ph-chart-bar"></i></div>
                         <div class="card-title">
                             <small>Perkembangan</small>
                             <h2>Progress Belajar</h2>

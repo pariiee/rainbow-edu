@@ -186,11 +186,12 @@
             }
         }
     </style>
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
 </head>
 <body>
     <div class="container">
         <div class="card">
-            <h1>🌈 Pilih Layanan Pendidikan</h1>
+            <h1><i class="ph-duotone ph-rainbow" style="color: #ec4899;"></i> Pilih Layanan Pendidikan</h1>
             <p class="subtitle">Pilih salah satu layanan untuk putra/putri Anda</p>
 
             @if(session('error'))
@@ -213,13 +214,13 @@
                     <label class="layanan-card">
                         <input type="radio" name="layanan" value="PAUD" required>
                         <div class="layanan-content">
-                            <div class="layanan-icon">🎨</div>
+                            <div class="layanan-icon"><i class="ph-duotone ph-palette"></i></div>
                             <div class="layanan-title">PAUD</div>
                             <div class="layanan-desc">
                                 Pendidikan Anak Usia Dini dengan metode Montessori 
                                 dan bermain sambil belajar. Tersedia program reguler dan montessori.
                             </div>
-                            <span class="guru-badge">🧑‍🏫 Guru PAUD</span>
+                            <span class="guru-badge"><i class="ph-duotone ph-chalkboard-teacher"></i> Guru PAUD</span>
                         </div>
                     </label>
 
@@ -227,13 +228,13 @@
                     <label class="layanan-card">
                         <input type="radio" name="layanan" value="Learn">
                         <div class="layanan-content">
-                            <div class="layanan-icon">📚</div>
+                            <div class="layanan-icon"><i class="ph-duotone ph-books"></i></div>
                             <div class="layanan-title">Rainbow Course</div>
                             <div class="layanan-desc">
                                 Program kursus akademik (Matematika, Sains, Bahasa) 
                                 dan pengembangan bakat (Musik, Seni, Olahraga).
                             </div>
-                            <span class="guru-badge">📖 Guru Learn</span>
+                            <span class="guru-badge"><i class="ph-duotone ph-book-open"></i> Guru Learn</span>
                         </div>
                     </label>
 
@@ -241,13 +242,13 @@
                     <label class="layanan-card">
                         <input type="radio" name="layanan" value="Home Learning">
                         <div class="layanan-content">
-                            <div class="layanan-icon">🏠</div>
+                            <div class="layanan-icon"><i class="ph-duotone ph-house"></i></div>
                             <div class="layanan-title">Rainbow Home Learning</div>
                             <div class="layanan-desc">
                                 Program belajar privat di rumah dengan guru berkualitas, 
                                 jadwal fleksibel, materi disesuaikan dengan kebutuhan.
                             </div>
-                            <span class="guru-badge">🏠 Guru Home Learning</span>
+                            <span class="guru-badge"><i class="ph-duotone ph-house"></i> Guru Home Learning</span>
                         </div>
                     </label>
                 </div>

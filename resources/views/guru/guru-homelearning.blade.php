@@ -4,887 +4,585 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Guru Home Learning - Rainbow Edu</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
         }
 
         body {
-            background: linear-gradient(135deg, #805ad5 0%, #6b46c1 100%);
+            background: #f0f4ff;
             min-height: 100vh;
-            padding: 30px;
+            overflow-x: hidden;
         }
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
+        /* ── DEKORASI AWAN BACKGROUND ── */
+        .clouds {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
         }
 
-        /* Header Styles */
+        .cloud {
+            position: absolute;
+            opacity: 0.55;
+            animation: drift linear infinite;
+        }
+
+        .cloud svg path {
+            fill: white;
+        }
+
+
+        .cloud-1  { top: 4%;  left: -120px; width: 220px; animation-duration: 60s; animation-delay: 0s; }
+        .cloud-2  { top: 12%; left: -80px;  width: 140px; animation-duration: 75s; animation-delay: -20s; opacity: 0.35; }
+        .cloud-3  { top: 28%; left: -160px; width: 180px; animation-duration: 55s; animation-delay: -10s; }
+        .cloud-4  { top: 55%; left: -100px; width: 160px; animation-duration: 80s; animation-delay: -35s; opacity: 0.3; }
+        .cloud-5  { top: 72%; left: -140px; width: 200px; animation-duration: 65s; animation-delay: -5s; }
+        .cloud-6  { top: 88%; left: -90px;  width: 130px; animation-duration: 70s; animation-delay: -45s; opacity: 0.35; }
+
+        @keyframes drift {
+            from { transform: translateX(0); }
+            to   { transform: translateX(calc(100vw + 300px)); }
+        }
+
+        /* warna-warni subtle pada tiap awan */
+        .cloud-1 svg path { fill: #ffd6d6; }
+        .cloud-2 svg path { fill: #ffe4cc; }
+        .cloud-3 svg path { fill: #d6f5d6; }
+        .cloud-4 svg path { fill: #cce5ff; }
+        .cloud-5 svg path { fill: #e0d6ff; }
+        .cloud-6 svg path { fill: #ffd6f5; }
+
+            to   { transform: translateX(calc(100vw + 300px)); }
+        }
+
+        /* ── RAINBOW TOP STRIPE ── */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #ff6b6b, #ff9f43, #ffd93d, #6bcb77, #4d96ff, #7b68ee, #c77dff);
+            z-index: 9999;
+        }
+
+        /* ── LAYOUT: SIDEBAR + HALAMAN ── */
+        .app-layout {
+            display: flex;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        .sidebar-slot {
+            flex-shrink: 0;
+            width: 260px; 
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .main-area {
+            flex: 1;
+            min-width: 0;
+            padding: 36px 32px;
+        }
+
+        /* ── HEADER CARD ── */
         .header {
             background: white;
-            border-radius: 24px;
-            padding: 30px 40px;
-            margin-bottom: 30px;
+            border-radius: 20px;
+            padding: 24px 28px;
+            margin-bottom: 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            animation: slideDown 0.5s ease;
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .welcome h1 {
-            font-size: 32px;
-            color: #2d3748;
-            margin-bottom: 8px;
-            font-weight: 700;
-        }
-
-        .welcome p {
-            color: #718096;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .badge {
-            background: linear-gradient(135deg, #805ad5 0%, #6b46c1 100%);
-            color: white;
-            padding: 6px 16px;
-            border-radius: 50px;
-            font-size: 14px;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .stats-wrapper {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-
-        .stat-card {
-            background: linear-gradient(135deg, #805ad5 0%, #6b46c1 100%);
-            padding: 20px 30px;
-            border-radius: 20px;
-            color: white;
-            min-width: 180px;
+            gap: 16px;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.06);
             position: relative;
             overflow: hidden;
         }
 
-        .stat-card::before {
+        .header::after {
             content: '';
             position: absolute;
-            top: -20px;
-            right: -20px;
-            width: 100px;
-            height: 100px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 50%;
+            top: 0; right: 0;
+            width: 180px;
+            height: 180px;
+            background: radial-gradient(circle at top right,
+                rgba(128,90,213,0.08) 0%,
+                rgba(159,122,234,0.06) 25%,
+                rgba(183,148,244,0.05) 50%,
+                rgba(214,188,250,0.04) 75%,
+                transparent 100%
+            );
+            pointer-events: none;
         }
 
-        .stat-number {
-            font-size: 42px;
-            font-weight: 700;
-            margin-bottom: 4px;
-            position: relative;
+        .welcome h1 {
+            font-size: 22px;
+            font-weight: 800;
+            color: #111827;
+            letter-spacing: -0.3px;
         }
 
-        .stat-label {
+        .welcome h1 .name {
+            background: linear-gradient(90deg, #805ad5, #9f7aea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .welcome p {
+            color: #6b7280;
             font-size: 14px;
-            opacity: 0.9;
-            position: relative;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            margin-top: 4px;
         }
 
         .btn-logout {
-            padding: 12px 28px;
-            background: #fff;
+            padding: 10px 20px;
+            background: #fff1f2;
             color: #e53e3e;
-            border: 2px solid #e53e3e;
-            border-radius: 14px;
-            font-size: 15px;
+            border: 1.5px solid #fecaca;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            transition: all 0.2s;
+            position: relative;
+            z-index: 2;
         }
 
         .btn-logout:hover {
             background: #e53e3e;
             color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(229, 62, 62, 0.3);
+            border-color: #e53e3e;
         }
 
-        /* Stats Grid */
+        /* ── STATS GRID (Top Stats) ── */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 25px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 24px;
         }
 
-        .stat-item {
+        .stat-card {
             background: white;
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-            transition: all 0.3s ease;
-            animation: fadeIn 0.5s ease;
+            border-radius: 18px;
+            padding: 20px 24px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 16px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            animation: fadeUp 0.4s ease both;
         }
 
-        .stat-item:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 32px rgba(0,0,0,0.10);
         }
+
+        .stat-card:nth-child(1) { animation-delay: 0.05s; }
+        .stat-card:nth-child(2) { animation-delay: 0.12s; }
+        .stat-card:nth-child(3) { animation-delay: 0.19s; }
+        .stat-card:nth-child(4) { animation-delay: 0.26s; }
 
         .stat-icon {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #805ad5 0%, #6b46c1 100%);
-            border-radius: 16px;
+            width: 46px;
+            height: 46px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-size: 28px;
+            font-size: 22px;
+            flex-shrink: 0;
+            background: #f3f4f6;
         }
 
+        .icon-blue { background: #eff6ff; color: #2563eb; }
+        .icon-green { background: #f0fdf4; color: #16a34a; }
+        .icon-amber { background: #fffbeb; color: #d97706; }
+        .icon-purple { background: #f5f3ff; color: #9333ea; }
+
         .stat-info h3 {
-            font-size: 14px;
-            color: #718096;
-            margin-bottom: 6px;
-            font-weight: 500;
+            font-size: 13px;
+            color: #6b7280;
+            font-weight: 600;
+            margin-bottom: 4px;
         }
 
         .stat-info .number {
-            font-size: 32px;
-            font-weight: 700;
-            color: #2d3748;
-            margin-bottom: 4px;
+            font-size: 24px;
+            font-weight: 800;
+            color: #111827;
         }
 
-        .stat-info .sub {
-            font-size: 13px;
-            color: #a0aec0;
-        }
-
-        /* Main Content */
-        .main-content {
-            display: grid;
-            grid-template-columns: 1fr 350px;
-            gap: 30px;
-            margin-bottom: 30px;
-        }
-
-        /* Private Student Grid */
-        .card {
+        /* ── DAFTAR SISWA SECTION ── */
+        .card-list {
             background: white;
-            border-radius: 24px;
-            padding: 30px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
-            animation: fadeIn 0.6s ease;
+            border-radius: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            overflow: hidden;
+            animation: fadeUp 0.5s ease both;
+            animation-delay: 0.3s;
         }
 
-        .card-header {
+        .card-list-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #f3f4f6;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 25px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #f0f0f0;
         }
-
-        .card-header h2 {
-            font-size: 20px;
-            color: #2d3748;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        
+        .card-list-header h2 {
+            font-size: 18px;
             font-weight: 700;
-        }
-
-        .student-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-        }
-
-        .student-card {
-            background: #f8fafc;
-            border-radius: 20px;
-            padding: 20px;
-            border: 1px solid #e2e8f0;
-            transition: all 0.3s ease;
-        }
-
-        .student-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 30px rgba(128, 90, 213, 0.15);
-            border-color: #805ad5;
-        }
-
-        .student-header {
+            color: #111827;
             display: flex;
             align-items: center;
-            gap: 15px;
-            margin-bottom: 15px;
+            gap: 8px;
         }
 
-        .student-avatar {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #805ad5 0%, #6b46c1 100%);
-            border-radius: 50%;
+        .siswa-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            padding: 24px;
+            background: #f9fafb;
+        }
+
+        .siswa-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid #f3f4f6;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .siswa-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 24px rgba(0,0,0,0.06);
+        }
+
+        /* Stripe warna per card anak */
+        .siswa-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #805ad5, #9f7aea);
+        }
+        
+        .siswa-card[data-status="pending"]::before {
+            background: linear-gradient(90deg, #ffd93d, #ff9f43);
+        }
+
+        .siswa-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+
+        .siswa-avatar {
+            width: 48px;
+            height: 48px;
+            background: #f5f3ff;
+            color: #9333ea;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-size: 24px;
-            font-weight: 600;
-        }
-
-        .student-info {
-            flex: 1;
-        }
-
-        .student-name {
             font-size: 18px;
-            font-weight: 600;
-            color: #2d3748;
-            margin-bottom: 4px;
+            font-weight: 700;
         }
 
-        .student-address {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            color: #718096;
-            font-size: 13px;
-            margin-bottom: 4px;
+        .siswa-info {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .student-detail {
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px dashed #e2e8f0;
+        .siswa-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .siswa-nickname {
+            color: #6b7280;
+            font-size: 12px;
+        }
+
+        .siswa-detail {
+            border-top: 1px dashed #e5e7eb;
+            padding-top: 14px;
+            margin-top: 10px;
         }
 
         .detail-row {
             display: flex;
-            align-items: center;
-            gap: 10px;
+            align-items: flex-start;
+            gap: 8px;
+            font-size: 12px;
+            color: #4b5563;
             margin-bottom: 8px;
-            color: #4a5568;
-            font-size: 14px;
         }
 
-        .schedule-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            background: #faf5ff;
-            color: #6b46c1;
-            border-radius: 50px;
-            font-size: 12px;
-            font-weight: 600;
+        .status-badge {
+            display: inline-flex;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .status-active { background: #dcfce7; color: #166534; }
+        .status-pending { background: #fef9c3; color: #854d0e; }
+
+        .btn-action-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
         }
 
         .btn-action {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #805ad5 0%, #6b46c1 100%);
-            color: white;
+            flex: 1;
+            padding: 8px;
+            text-align: center;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
             border: none;
-            border-radius: 14px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            text-decoration: none;
         }
 
-        .btn-action:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(128, 90, 213, 0.3);
-        }
-
-        .btn-secondary {
-            width: 100%;
-            padding: 12px;
-            background: white;
-            color: #805ad5;
-            border: 2px solid #805ad5;
-            border-radius: 14px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            text-decoration: none;
-        }
-
-        .btn-secondary:hover {
+        .btn-jadwal {
             background: #805ad5;
             color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(128, 90, 213, 0.3);
         }
+
+        .btn-jadwal:hover { background: #6b46c1; }
 
         .btn-chat {
-            border-color: #38a169;
-            color: #38a169;
+            background: #f3f4f6;
+            color: #374151;
+            border: 1px solid #e5e7eb;
         }
 
-        .btn-chat:hover {
-            background: #38a169;
-            border-color: #38a169;
-            color: white;
-            box-shadow: 0 10px 20px rgba(56, 161, 105, 0.3);
+        .btn-chat:hover { background: #e5e7eb; }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 1024px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
         }
 
-        /* Action Buttons Container */
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
+        @media (max-width: 768px) {
+            .app-layout { flex-direction: column; }
+            .sidebar-slot { width: 100%; height: auto; position: relative; }
+            .main-area { padding: 20px 16px; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .header { flex-direction: column; text-align: center; }
+            .btn-action-group { flex-direction: column; }
         }
 
-        .action-buttons .btn-action,
-        .action-buttons .btn-secondary {
-            flex: 1;
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
 
-        /* Sidebar */
-        .sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 30px;
-        }
-
-        .profile-card {
-            background: white;
-            border-radius: 24px;
-            padding: 30px;
-            text-align: center;
-        }
-
-        .profile-avatar {
-            width: 100px;
-            height: 100px;
-            background: linear-gradient(135deg, #805ad5 0%, #6b46c1 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            color: white;
-            font-size: 40px;
-            font-weight: 600;
-            border: 4px solid white;
-            box-shadow: 0 10px 30px rgba(128, 90, 213, 0.3);
-        }
-
-        .profile-name {
-            font-size: 20px;
-            font-weight: 700;
-            color: #2d3748;
-            margin-bottom: 6px;
-        }
-
-        .profile-role {
-            color: #805ad5;
-            font-weight: 600;
-            margin-bottom: 20px;
-            padding: 6px 16px;
-            background: #faf5ff;
-            display: inline-block;
-            border-radius: 50px;
-            font-size: 13px;
-        }
-
-        .profile-stats {
-            display: flex;
-            justify-content: space-around;
-            padding-top: 20px;
-            border-top: 2px solid #f0f0f0;
-        }
-
-        .profile-stat {
-            text-align: center;
-        }
-
-        .profile-stat .value {
-            font-size: 24px;
-            font-weight: 700;
-            color: #2d3748;
-            margin-bottom: 4px;
-        }
-
-        .profile-stat .label {
-            font-size: 12px;
-            color: #718096;
-        }
-
-        /* Today Schedule */
-        .today-schedule {
-            background: white;
-            border-radius: 24px;
-            padding: 30px;
-        }
-
-        .today-schedule h3 {
-            font-size: 18px;
-            color: #2d3748;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .schedule-item {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 15px;
-            background: #faf5ff;
-            border-radius: 16px;
-            margin-bottom: 12px;
-        }
-
-        .schedule-time {
-            background: white;
-            padding: 8px 12px;
-            border-radius: 12px;
-            color: #805ad5;
-            font-weight: 700;
-            font-size: 14px;
-            min-width: 80px;
-            text-align: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-
-        .schedule-location {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            color: #718096;
-            font-size: 12px;
-            margin-top: 4px;
-        }
-
-        /* Empty State */
         .empty-state {
             text-align: center;
             padding: 60px 20px;
         }
 
         .empty-icon {
-            font-size: 64px;
-            margin-bottom: 20px;
-            opacity: 0.5;
+            font-size: 48px;
+            margin-bottom: 16px;
         }
 
         .empty-title {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 600;
-            color: #2d3748;
+            color: #111827;
             margin-bottom: 8px;
         }
 
         .empty-desc {
-            color: #718096;
-            margin-bottom: 24px;
-        }
-
-        /* Animations */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Responsive */
-        @media (max-width: 1024px) {
-            .main-content {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 768px) {
-            body {
-                padding: 20px;
-            }
-
-            .header {
-                flex-direction: column;
-                text-align: center;
-                padding: 25px;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .student-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .action-buttons {
-                flex-direction: column;
-            }
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, #805ad5 0%, #6b46c1 100%);
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(135deg, #6b46c1 0%, #805ad5 100%);
+            font-size: 13px;
+            color: #6b7280;
         }
     </style>
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
+
+<!-- Dekorasi awan melayang -->
+<!-- Dekorasi awan -->
+<div class="clouds">
+    <div class="cloud cloud-1">
+        <svg viewBox="0 0 200 80" xmlns="http://www.w3.org/2000/svg"><path d="M30,60 Q10,60 10,45 Q10,30 25,28 Q22,10 40,10 Q52,10 58,20 Q65,8 80,8 Q100,8 105,25 Q118,20 130,28 Q145,25 150,38 Q160,38 160,50 Q160,62 148,62 Z"/></svg>
+    </div>
+    <div class="cloud cloud-2">
+        <svg viewBox="0 0 140 56" xmlns="http://www.w3.org/2000/svg"><path d="M20,42 Q6,42 6,30 Q6,18 18,17 Q15,4 30,4 Q40,4 45,12 Q52,3 65,3 Q82,3 86,17 Q96,14 104,22 Q114,20 116,30 Q122,30 122,40 Q122,48 112,48 Z"/></svg>
+    </div>
+    <div class="cloud cloud-3">
+        <svg viewBox="0 0 180 70" xmlns="http://www.w3.org/2000/svg"><path d="M28,54 Q8,54 8,40 Q8,26 22,24 Q18,8 36,8 Q48,8 54,18 Q62,6 78,6 Q100,6 104,22 Q116,18 126,26 Q140,22 144,36 Q154,36 154,48 Q154,58 142,60 Z"/></svg>
+    </div>
+    <div class="cloud cloud-4">
+        <svg viewBox="0 0 160 64" xmlns="http://www.w3.org/2000/svg"><path d="M24,50 Q6,50 6,36 Q6,22 20,20 Q16,6 34,6 Q46,6 52,16 Q58,4 74,4 Q96,4 100,20 Q110,16 120,24 Q132,20 136,34 Q146,34 146,44 Q146,56 134,56 Z"/></svg>
+    </div>
+    <div class="cloud cloud-5">
+        <svg viewBox="0 0 200 76" xmlns="http://www.w3.org/2000/svg"><path d="M32,58 Q10,58 10,44 Q10,30 24,28 Q20,10 40,10 Q54,10 60,20 Q68,8 84,8 Q108,8 112,26 Q122,22 134,30 Q148,26 152,40 Q164,40 164,52 Q164,62 150,64 Z"/></svg>
+    </div>
+    <div class="cloud cloud-6">
+        <svg viewBox="0 0 130 52" xmlns="http://www.w3.org/2000/svg"><path d="M18,40 Q4,40 4,28 Q4,16 16,15 Q12,2 28,2 Q38,2 44,10 Q50,2 62,2 Q80,2 84,16 Q94,12 100,20 Q110,18 112,28 Q118,28 118,38 Q118,46 108,46 Z"/></svg>
+    </div>
+</div>
+
+<div class="app-layout">
+
+    {{-- SIDEBAR GURU --}}
+    <div class="sidebar-slot">
+        <x-sidebar.guru />
+    </div>
+
+    {{-- HALAMAN UTAMA --}}
+    <div class="main-area">
+
+        {{-- HEADER --}}
         <div class="header">
             <div class="welcome">
-                <h1>Selamat Datang, {{ auth()->user()->name }}! 👋</h1>
-                <p>
-                    <span class="badge">
-                        <span>🏠</span> Guru Home Learning - Private Course
-                    </span>
-                    <span style="color: #718096;">| {{ now()->format('l, d F Y') }}</span>
-                </p>
+                <h1>Selamat Datang, <span class="name">{{ auth()->user()->name }}</span> <i class="ph-duotone ph-hand-waving"></i></h1>
+                <p><i class="ph-duotone ph-chalkboard-teacher"></i> Guru Home Learning - Private Course | <strong>{{ now()->format('l, d F Y') }}</strong></p>
             </div>
-            
-            <div class="stats-wrapper">
-                <div class="stat-card">
-                    <div class="stat-number">{{ $totalSiswa ?? 0 }}</div>
-                    <div class="stat-label">
-                        <span>🏠</span> Total Siswa Private
-                    </div>
-                </div>
-                <form method="POST" action="{{ route('logout') }}" style="display: inline;">
-                    @csrf
-                    <button type="submit" class="btn-logout">
-                        <span>🚪</span> Keluar
-                    </button>
-                </form>
-            </div>
+            <!-- Menggunakan custom logout di atas jika diperlukan khusus di area card, namun karena di sidebar sudah ada, di sini bisa menjadi cadangan -->
         </div>
 
-        <!-- Stats Grid -->
+        {{-- STATS GRID --}}
         <div class="stats-grid">
-            <div class="stat-item">
-                <div class="stat-icon">🏠</div>
+            <div class="stat-card">
+                <div class="stat-icon icon-blue"><i class="ph-duotone ph-house"></i></div>
                 <div class="stat-info">
-                    <h3>Siswa Home Learning</h3>
-                    <div class="number">{{ $siswaHomelearning ?? $siswaList->count() ?? 0 }}</div>
-                    <div class="sub">Private di rumah</div>
+                    <h3>Total Siswa</h3>
+                    <div class="number">{{ $totalSiswa ?? 0 }}</div>
                 </div>
             </div>
-            <div class="stat-item">
-                <div class="stat-icon">📍</div>
+            <div class="stat-card">
+                <div class="stat-icon icon-green"><i class="ph-duotone ph-check-circle" style="color: #22c55e;"></i></div>
+                <div class="stat-info">
+                    <h3>Siswa Aktif</h3>
+                    <div class="number">{{ $siswaAktif ?? $siswaList->where('status_assign', 'active')->count() ?? 0 }}</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon icon-amber"><i class="ph-duotone ph-hourglass-medium" style="color: #d97706;"></i></div>
+                <div class="stat-info">
+                    <h3>Pending</h3>
+                    <div class="number">{{ $siswaPending ?? $siswaList->where('status_assign', 'pending')->count() ?? 0 }}</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon icon-purple"><i class="ph-duotone ph-map-pin"></i></div>
                 <div class="stat-info">
                     <h3>Lokasi Mengajar</h3>
                     <div class="number">{{ $lokasiMengajar ?? $siswaList->count() ?? 0 }}</div>
-                    <div class="sub">Alamat berbeda</div>
-                </div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-icon">⏰</div>
-                <div class="stat-info">
-                    <h3>Jam Mengajar</h3>
-                    <div class="number">{{ $totalJam ?? '0' }}</div>
-                    <div class="sub">Jam/minggu</div>
                 </div>
             </div>
         </div>
 
-        <!-- Main Content -->
-        <div class="main-content">
-            <!-- Daftar Siswa Private -->
-            <div class="card">
-                <div class="card-header">
-                    <h2>
-                        <span>🏠</span> Daftar Siswa Home Learning
-                    </h2>
-                    <div style="display: flex; gap: 10px;">
-                        <span class="schedule-badge">
-                            {{ $siswaList->where('status_assign', 'active')->count() ?? 0 }} Aktif
-                        </span>
-                        <span class="schedule-badge" style="background: #fed7d7; color: #742a2a;">
-                            {{ $siswaList->where('status_assign', 'pending')->count() ?? 0 }} Pending
-                        </span>
-                    </div>
-                </div>
+        {{-- DAFTAR SISWA SECTION --}}
+        <div class="card-list">
+            <div class="card-list-header">
+                <h2><i class="ph-duotone ph-house"></i> Daftar Siswa Home Learning</h2>
+            </div>
 
-                @if(isset($siswaList) && $siswaList->count() > 0)
-                    <div class="student-grid">
-                        @foreach($siswaList as $siswa)
-                        <div class="student-card">
-                            <div class="student-header">
-                                <div class="student-avatar">
-                                    {{ strtoupper(substr($siswa->nama_lengkap, 0, 1)) }}
-                                </div>
-                                <div class="student-info">
-                                    <div class="student-name">{{ $siswa->nama_lengkap }}</div>
-                                    <div class="student-address">
-                                        <span>📍</span> {{ $siswa->alamat_domisili ?? 'Alamat belum diisi' }}
-                                    </div>
-                                </div>
+            @if(isset($siswaList) && $siswaList->count() > 0)
+                <div class="siswa-grid">
+                    @foreach($siswaList as $siswa)
+                    <div class="siswa-card" data-status="{{ $siswa->status_assign ?? 'pending' }}">
+                        
+                        <div class="siswa-header">
+                            <div class="siswa-avatar">
+                                {{ strtoupper(substr($siswa->nama_lengkap, 0, 1)) }}
                             </div>
-                            
-                            <div class="student-detail">
-                                <div class="detail-row">
-                                    <span>👤</span> Orang Tua: {{ $siswa->orangTua->name ?? '-' }}
-                                </div>
-                                <div class="detail-row">
-                                    <span>📱</span> Kontak: {{ $siswa->orangTua->email ?? '-' }}
-                                </div>
-                                <div class="detail-row">
-                                    <span>📊</span> Status: 
-                                    @if($siswa->status_assign == 'active')
-                                        <span style="color: #38a169; font-weight: 600;">Aktif</span>
+                            <div class="siswa-info">
+                                <div class="siswa-name">{{ $siswa->nama_lengkap }}</div>
+                                <div class="siswa-nickname"><i class="ph-duotone ph-map-pin"></i> {{ $siswa->alamat_domisili ?? 'Alamat belum diisi' }}</div>
+                            </div>
+                        </div>
+
+                        <div class="siswa-detail">
+                            <div class="detail-row">
+                                <span style="font-size: 14px; margin-right: 4px;"><i class="ph-duotone ph-users-three"></i></span> 
+                                <span>Orang Tua: <strong>{{ $siswa->orangTua->name ?? '-' }}</strong></span>
+                            </div>
+                            <div class="detail-row">
+                                <span style="font-size: 14px; margin-right: 4px;"><i class="ph-duotone ph-device-mobile"></i></span> 
+                                <span>Kontak: <strong>{{ $siswa->orangTua->email ?? '-' }}</strong></span>
+                            </div>
+                            <div class="detail-row">
+                                <span style="font-size: 14px; margin-right: 4px;"><i class="ph-duotone ph-chart-bar"></i></span> 
+                                <span>Status: 
+                                    @if(isset($siswa->status_assign) && $siswa->status_assign == 'active')
+                                        <span class="status-badge status-active">Aktif</span>
                                     @else
-                                        <span style="color: #e53e3e; font-weight: 600;">Pending</span>
+                                        <span class="status-badge status-pending">Pending</span>
                                     @endif
-                                </div>
-                                <div class="detail-row">
-                                    <span>📅</span> Jadwal: 
-                                    <span style="color: #805ad5; font-weight: 600;">Belum diatur</span>
-                                </div>
-                                @if($siswa->questionnaire && $siswa->questionnaire->tingkat_kemandirian)
-                                <div class="detail-row">
-                                    <span>🎯</span> Kemandirian: {{ $siswa->questionnaire->tingkat_kemandirian }}
-                                </div>
-                                @endif
+                                </span>
                             </div>
-
-                            <!-- Action Buttons - Updated sesuai permintaan -->
-                            <div class="action-buttons">
-                                <a href="{{ route('guru.jadwal.siswa', $siswa->id) }}" class="btn-action">
-                                    <span>📅</span> Atur Jadwal Kunjungan
-                                </a>
-                                <a href="{{ route('chat.show', $siswa->id) }}" class="btn-secondary btn-chat">
-                                    <span>💬</span> Chat
-                                </a>
+                            @if(isset($siswa->questionnaire) && $siswa->questionnaire->tingkat_kemandirian)
+                            <div class="detail-row">
+                                <span style="font-size: 14px; margin-right: 4px;"><i class="ph-duotone ph-target"></i></span> 
+                                <span>Kemandirian: <strong>{{ $siswa->questionnaire->tingkat_kemandirian }}</strong></span>
                             </div>
+                            @endif
                         </div>
-                        @endforeach
-                    </div>
-                @else
-                    <div class="empty-state">
-                        <div class="empty-icon">🏠</div>
-                        <div class="empty-title">Belum Ada Siswa Private</div>
-                        <div class="empty-desc">
-                            Siswa yang mendaftar Rainbow Home Learning akan muncul di sini.<br>
-                            Saat ini belum ada siswa yang terdaftar.
-                        </div>
-                        <div style="color: #805ad5; font-size: 14px;">
-                            <span>⏳</span> Menunggu pendaftaran baru...
-                        </div>
-                    </div>
-                @endif
-            </div>
 
-            <!-- Sidebar -->
-            <div class="sidebar">
-                <!-- Profile Card -->
-                <div class="profile-card">
-                    <div class="profile-avatar">
-                        {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
-                    </div>
-                    <div class="profile-name">{{ auth()->user()->name }}</div>
-                    <div class="profile-role">🏠 Guru Home Learning</div>
-                    
-                    <div class="profile-stats">
-                        <div class="profile-stat">
-                            <div class="value">{{ $totalSiswa ?? 0 }}</div>
-                            <div class="label">Total Siswa</div>
-                        </div>
-                        <div class="profile-stat">
-                            <div class="value">{{ $siswaAktif ?? $siswaList->where('status_assign', 'active')->count() ?? 0 }}</div>
-                            <div class="label">Aktif</div>
-                        </div>
-                        <div class="profile-stat">
-                            <div class="value">{{ $siswaPending ?? $siswaList->where('status_assign', 'pending')->count() ?? 0 }}</div>
-                            <div class="label">Pending</div>
+                        <div class="btn-action-group">
+                            <a href="{{ route('guru.jadwal.siswa', $siswa->id) }}" class="btn-action btn-jadwal">
+                                <i class="ph-duotone ph-calendar-blank"></i> Atur Jadwal
+                            </a>
+                            <a href="{{ route('chat.show', $siswa->id) }}" class="btn-action btn-chat">
+                                <i class="ph-duotone ph-chat-teardrop-dots"></i> Chat Ortu
+                            </a>
                         </div>
                     </div>
+                    @endforeach
                 </div>
-
-                <!-- Jadwal Kunjungan Hari Ini -->
-                <div class="today-schedule">
-                    <div class="schedule-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h3>
-                            <span>📅</span> Jadwal Kunjungan Hari Ini
-                        </h3>
-                        <span style="color: #805ad5; font-size: 13px;">{{ now()->format('d M Y') }}</span>
-                    </div>
-
-                    @php
-                        $hasSchedule = false;
-                    @endphp
-
-                    @if($hasSchedule)
-                        <div class="schedule-item">
-                            <div class="schedule-time">09:00</div>
-                            <div style="flex: 1;">
-                                <div style="font-weight: 600; color: #2d3748;">Budi Santoso</div>
-                                <div class="schedule-location">
-                                    <span>📍</span> Jl. Merdeka No. 45
-                                </div>
-                            </div>
-                        </div>
-                        <div class="schedule-item">
-                            <div class="schedule-time">13:00</div>
-                            <div style="flex: 1;">
-                                <div style="font-weight: 600; color: #2d3748;">Ani Wijaya</div>
-                                <div class="schedule-location">
-                                    <span>📍</span> Jl. Sudirman No. 12
-                                </div>
-                            </div>
-                        </div>
-                    @else
-                        <div style="text-align: center; padding: 30px 0;">
-                            <div style="font-size: 48px; margin-bottom: 15px;">🗓️</div>
-                            <div style="color: #718096; margin-bottom: 10px;">Tidak ada jadwal kunjungan hari ini</div>
-                            <div style="font-size: 13px; color: #a0aec0;">Gunakan fitur "Atur Jadwal" untuk membuat jadwal</div>
-                        </div>
-                    @endif
-
-                    <a href="#" style="display: block; text-align: center; margin-top: 20px; padding: 12px; background: #faf5ff; color: #805ad5; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 14px;">
-                        Kelola Semua Jadwal →
-                    </a>
+            @else
+                <div class="empty-state">
+                    <div class="empty-icon"><i class="ph-duotone ph-house"></i></div>
+                    <div class="empty-title">Belum Ada Siswa Private</div>
+                    <div class="empty-desc">Siswa yang mendaftar Rainbow Home Learning akan muncul di sini. <br> Saat ini belum ada siswa yang terdaftar.</div>
                 </div>
-
-                <!-- Rute Perjalanan -->
-                <div class="today-schedule" style="background: linear-gradient(135deg, #805ad5 0%, #6b46c1 100%); color: white;">
-                    <h3 style="color: white; margin-bottom: 20px;">
-                        <span>🗺️</span> Rute Perjalanan
-                    </h3>
-                    
-                    <div style="margin-bottom: 20px;">
-                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-                            <div style="width: 30px; height: 30px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600;">
-                                1
-                            </div>
-                            <div style="flex: 1;">
-                                <div style="font-weight: 600;">Titik Mulai</div>
-                                <div style="font-size: 12px; opacity: 0.9;">Cabang Rainbow Edu</div>
-                            </div>
-                        </div>
-                        
-                        <div style="width: 2px; height: 30px; background: rgba(255,255,255,0.3); margin-left: 14px;"></div>
-                        
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="width: 30px; height: 30px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600;">
-                                2
-                            </div>
-                            <div style="flex: 1;">
-                                <div style="font-weight: 600;">Siswa 1</div>
-                                <div style="font-size: 12px; opacity: 0.9;">Belum ada jadwal</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <p style="font-size: 13px; opacity: 0.9; text-align: center;">
-                        Atur jadwal untuk melihat rute perjalanan optimal
-                    </p>
-                </div>
-
-                <!-- Catatan Penting -->
-                <div class="today-schedule" style="background: white;">
-                    <h3 style="color: #2d3748; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
-                        <span>📌</span> Catatan Penting
-                    </h3>
-                    <ul style="list-style: none; padding: 0;">
-                        <li style="margin-bottom: 15px; display: flex; gap: 10px; color: #4a5568; font-size: 14px;">
-                            <span>•</span>
-                            <span>Konfirmasi jadwal kunjungan H-1 dengan orang tua</span>
-                        </li>
-                        <li style="margin-bottom: 15px; display: flex; gap: 10px; color: #4a5568; font-size: 14px;">
-                            <span>•</span>
-                            <span>Pastikan alamat dan rute perjalanan sudah dicek</span>
-                        </li>
-                        <li style="display: flex; gap: 10px; color: #4a5568; font-size: 14px;">
-                            <span>•</span>
-                            <span>Laporkan progress belajar setiap sesi selesai</span>
-                        </li>
-                    </ul>
-                </div>
-            </div>
+            @endif
         </div>
-    </div>
 
-    <script>
-        // Any additional JavaScript functionality can go here
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add smooth scrolling for anchor links
-            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-                anchor.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    document.querySelector(this.getAttribute('href')).scrollIntoView({
-                        behavior: 'smooth'
-                    });
-                });
-            });
-        });
-    </script>
+    </div>{{-- /main-area --}}
+</div>{{-- /app-layout --}}
+
 </body>
 </html>

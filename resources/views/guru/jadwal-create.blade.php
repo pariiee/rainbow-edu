@@ -167,13 +167,14 @@
             }
         }
     </style>
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
 </head>
 <body>
     <div class="container">
         <div class="card">
             <div class="header">
                 <h1>
-                    <span>📅</span> Buat Jadwal Baru
+                    <span><i class="ph-duotone ph-calendar-blank"></i></span> Buat Jadwal Baru
                 </h1>
                 <a href="javascript:history.back()" class="btn-back">
                     ← Kembali
@@ -240,7 +241,7 @@
                 </div>
 
                 <button type="submit" class="btn-submit">
-                    💾 Buat Jadwal & Kirim ke Orang Tua
+                    <i class="ph-duotone ph-floppy-disk"></i> Buat Jadwal & Kirim ke Orang Tua
                 </button>
             </form>
         </div>
